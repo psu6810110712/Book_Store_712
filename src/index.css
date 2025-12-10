@@ -1,0 +1,32 @@
+/* src/index.css */
+:root {
+  font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* 1. เพิ่ม Box Sizing เพื่อให้การคำนวณขนาดไม่ผิดพลาด */
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+/* 2. บังคับให้ HTML และ Body เต็มจอ */
+html, body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%; /* เปลี่ยนจาก min-height เป็น height 100% */
+  overflow-x: hidden; /* ป้องกันสกรอลล์แนวนอน */
+}
+
+/* 3. บังคับให้ Root เต็มจอและใช้ Flexbox */
+#root {
+  width: 100%;
+  height: 100%;
+  display: flex; /* ใช้ Flex เพื่อให้ลูก (Layout) ขยายเต็มพื้นที่ง่ายขึ้น */
+  flex-direction: column;
+}
