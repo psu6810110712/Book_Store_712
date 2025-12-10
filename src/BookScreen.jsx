@@ -1,7 +1,7 @@
 import './App.css'
 import { useState, useEffect } from 'react'
-import { Divider, Spin, Select, Tag, Button, Modal, Card, Row, Col } from 'antd'
-import { PlusOutlined } from '@ant-design/icons';
+import { Divider, Spin, Select, Tag, Button, Modal, Card, Row, Col, Input } from 'antd' // 1. Import Input
+import { PlusOutlined, SearchOutlined } from '@ant-design/icons';
 import BookList from './components/BookList'
 import AddBook from './components/AddBook'
 import EditBook from './components/EditBook'
@@ -10,7 +10,9 @@ import axios from 'axios'
 axios.defaults.baseURL = "http://localhost:3000"
 const URL_BOOK = "/api/book"
 const URL_CATEGORY = "/api/book-category"
+const { Option } = Select; // ดึง Option ออกมาใช้กับ Dropdown
 
+// ... (Helper functions: getColorByName, tagRender เหมือนเดิม) ...
 const getColorByName = (name) => {
     const colors = ['magenta', 'red', 'volcano', 'orange', 'gold', 'lime', 'green', 'cyan', 'blue', 'geekblue', 'purple'];
     let hash = 0;
@@ -35,10 +37,13 @@ function BookScreen() {
     const [categories, setCategories] = useState([]);
     const [editItem, setEditItem] = useState(null);
     const [filterCategories, setFilterCategories] = useState([]);
-    
-    // 1. ตรวจสอบว่ามี State นี้อยู่
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
 
+    // 2. เพิ่ม State สำหรับการค้นหา
+    const [searchText, setSearchText] = useState("");
+    const [searchType, setSearchType] = useState("title"); // ค่าเริ่มต้นค้นหาด้วย Title
+
+    // ... (Functions fetchBooks, fetchCategories, handle... เหมือนเดิม) ...
     const fetchBooks = async () => {
         setLoading(true);
         try {
@@ -59,60 +64,90 @@ function BookScreen() {
             const { id, category, createdAt, updatedAt, ...cleanData } = updatedValues;
             await axios.patch(`${URL_BOOK}/${editItem.id}`, cleanData);
             setEditItem(null);
-            await fetchBooks(); 
+            await fetchBooks();
         } catch (err) { console.log(err) }
         finally { setLoading(false) }
     }
-
-    const handleAddBook = async (newBook) => { 
-        try { 
-            await axios.post(URL_BOOK, newBook); 
-            // 2. สั่งปิด Modal เมื่อบันทึกเสร็จ
-            setIsAddModalOpen(false); 
-            await fetchBooks(); 
-        } catch (err) { console.log(err) } 
-    }
-    
+    const handleAddBook = async (newBook) => { try { await axios.post(URL_BOOK, newBook); setIsAddModalOpen(false); await fetchBooks(); } catch (err) { console.log(err) } }
     const handleLikeBook = async (book) => { try { await axios.post(`${URL_BOOK}/${book.id}/like`); await fetchBooks(); } catch (err) { console.log(err) } }
     const handleDeleteBook = async (bookId) => { try { await axios.delete(`${URL_BOOK}/${bookId}`); await fetchBooks(); } catch (err) { console.log(err) } }
 
     useEffect(() => { fetchBooks(); fetchCategories(); }, [])
 
+    // 3. ปรับปรุง Logic การกรอง (รวม Category + Search)
     const filteredBooks = bookData.filter(book => {
-        if (filterCategories.length === 0) return true;
-        return filterCategories.includes(book.category?.id);
-    });
+        // กรอง 1: Category
+        const matchCategory = filterCategories.length === 0 ||
+            (book.category && filterCategories.includes(book.category.id)); // เช็ค book.category ก่อน
 
+        // กรอง 2: Search Text
+        if (!searchText) return matchCategory;
+
+        // เช็คว่ามีค่าใน field นั้นไหมก่อนเรียก toString()
+        const rawValue = book[searchType];
+        const valueToSearch = rawValue ? rawValue.toString().toLowerCase() : "";
+        const keyword = searchText.toLowerCase();
+
+        return matchCategory && valueToSearch.includes(keyword);
+    });
     useEffect(() => {
         const sum = filteredBooks.reduce((total, book) => total + (Number(book.price) * Number(book.stock)), 0);
         setTotalAmount(sum);
     }, [filteredBooks])
 
+    // 4. สร้างส่วน Dropdown เลือกประเภท (สำหรับใส่หน้าช่อง Search)
+    const selectBefore = (
+        <Select defaultValue="title" onSelect={(value) => setSearchType(value)} style={{ width: 100 }} variant="borderless">
+            <Option value="title">Title</Option>
+            <Option value="author">Author</Option>
+            <Option value="isbn">ISBN</Option>
+        </Select>
+    );
+
     return (
-        <div style={{ padding: '10px' }}> 
-            <Row gutter={[16, 16]} align="middle" justify="space-between" style={{ marginBottom: '24px' }}>
-                <Col xs={24} sm={16} md={12}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                        <span style={{ fontWeight: 'bold', fontSize: '16px' }}>Filter by Category:</span>
-                        <Select
-                            mode="multiple"
-                            size="large"
-                            tagRender={tagRender}
-                            style={{ flex: 1, minWidth: '200px' }}
-                            options={categories}
-                            placeholder="Select categories..."
-                            onChange={(values) => setFilterCategories(values)}
+        <div style={{ padding: '20px' }}>
+
+            {/* Header Controls */}
+            <div style={{ marginBottom: '24px' }}>
+                <Row gutter={[16, 16]} align="middle" justify="space-between">
+
+                    {/* ส่วนซ้าย: Filter Category */}
+                    <Col xs={24} md={8}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            <span style={{ fontWeight: 'bold' }}>Filter:</span>
+                            <Select
+                                mode="multiple"
+                                tagRender={tagRender}
+                                style={{ width: '100%' }}
+                                options={categories}
+                                placeholder="Select categories..."
+                                onChange={(values) => setFilterCategories(values)}
+                                allowClear
+                            />
+                        </div>
+                    </Col>
+
+                    {/* ส่วนกลาง: Search Bar (ตามแบบในรูป) */}
+                    <Col xs={24} md={10}>
+                        <Input.Search
+                            addonBefore={selectBefore} // ใส่ Dropdown ไว้ด้านหน้า
+                            placeholder="Search terms..."
                             allowClear
+                            enterButton
+                            size="large"
+                            onSearch={(value) => setSearchText(value)} // ค้นหาเมื่อกด Enter หรือปุ่มแว่นขยาย
+                            onChange={(e) => setSearchText(e.target.value)} // หรือค้นหาทันทีที่พิมพ์ (Real-time)
                         />
-                    </div>
-                </Col>
-                <Col>
-                    {/* 3. ตรวจสอบปุ่ม onClick ให้ถูกต้อง */}
-                    <Button type="primary" size="large" icon={<PlusOutlined />} onClick={() => setIsAddModalOpen(true)}>
-                        Create New Book
-                    </Button>
-                </Col>
-            </Row>
+                    </Col>
+
+                    {/* ส่วนขวา: ปุ่ม Add New Book */}
+                    <Col xs={24} md={6} style={{ textAlign: 'right' }}>
+                        <Button type="primary" size="large" icon={<PlusOutlined />} onClick={() => setIsAddModalOpen(true)}>
+                            Create New Book
+                        </Button>
+                    </Col>
+                </Row>
+            </div>
 
             <Card style={{ marginBottom: '24px', textAlign: 'center', background: '#f9f9f9' }}>
                 <h3 style={{ margin: 0, color: '#555' }}>
@@ -126,30 +161,29 @@ function BookScreen() {
                         data={filteredBooks}
                         onLiked={handleLikeBook}
                         onDeleted={handleDeleteBook}
-                        onEdit={(record) => setEditItem(record)} 
+                        onEdit={(record) => setEditItem(record)}
                     />
                 </Card>
             </Spin>
 
             <EditBook
-                isOpen={!!editItem} 
+                isOpen={!!editItem}
                 item={editItem}
                 categories={categories}
                 onCancel={() => setEditItem(null)}
                 onSave={handleUpdateBook}
             />
 
-            {/* 4. Modal สำหรับ AddBook */}
             <Modal
                 title="Add New Book"
-                open={isAddModalOpen} 
+                open={isAddModalOpen}
                 onCancel={() => setIsAddModalOpen(false)}
                 footer={null}
                 width={600}
             >
-                <AddBook 
-                    onBookAdded={handleAddBook} 
-                    categories={categories} 
+                <AddBook
+                    onBookAdded={handleAddBook}
+                    categories={categories}
                 />
             </Modal>
         </div>

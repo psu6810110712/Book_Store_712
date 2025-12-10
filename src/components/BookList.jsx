@@ -40,11 +40,23 @@ export default function BookList(props) {
     {
       title: "Cover",
       dataIndex: 'coverUrl',
+      align: 'center', // จัดกึ่งกลางคอลัมน์
       render: (text) => (
         <Image
           src={`http://localhost:3080/${text}`}
-          height={100} 
-          fallback="https://via.placeholder.com/150" // ใส่กันเหนียวเผื่อรูปเสีย
+
+          // 1. กำหนดขนาดที่แน่นอน
+          width={80}
+          height={120}
+
+          // 2. ปรับ Style ให้ภาพไม่บีบ (สำคัญ)
+          style={{
+            objectFit: 'cover', // ตัดส่วนเกินออก รักษาอัตราส่วน
+            borderRadius: '6px', // มุมมนนิดหน่อยให้ดูสวย
+            border: '1px solid #f0f0f0' // ใส่ขอบบางๆ กันภาพกลืนกับพื้นหลัง
+          }}
+
+          fallback="https://placehold.co/80x120?text=No+Image" // รูปสำรองถ้าหาไม่เจอ
         />
       ),
     },
@@ -53,7 +65,7 @@ export default function BookList(props) {
       dataIndex: 'category',
       key: 'category',
       render: (item) => (
-          <Tag color="blue">{item ? item.name : '-'}</Tag> 
+        <Tag color="blue">{item ? item.name : '-'}</Tag>
       ),
     },
     {
@@ -66,7 +78,7 @@ export default function BookList(props) {
       title: 'Action',
       key: 'action',
       render: (text, record) => (
-        <Space size="small"> 
+        <Space size="small">
           <Button type="primary" onClick={() => props.onLiked(record)}>Like</Button>
           <Button onClick={() => props.onEdit(record)}>Edit</Button>
           <Popconfirm title="Are you sure?" onConfirm={() => props.onDeleted(record.id)}>
@@ -82,13 +94,12 @@ export default function BookList(props) {
       rowKey="id"
       dataSource={props.data}
       columns={columns}
+
+      // ✅ เพิ่มบรรทัดนี้: ถ้าตารางกว้างเกิน ให้ขึ้น scrollbar ที่ตัวตารางแทน
+      scroll={{ x: true }}
+
       pagination={{ pageSize: 5 }}
-      scroll={{ x: 1000 }} 
-      rowClassName={(record, index) => {
-        if (record.stock < 30) {
-          return "red-row";
-        }
-      }} 
+    // ...
     />
   )
 }
