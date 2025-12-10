@@ -81,6 +81,13 @@ function BookScreen() {
     const handleLikeBook = async (book) => { try { await axios.post(`${URL_BOOK}/${book.id}/like`); await fetchBooks(); } catch (err) { console.log(err) } }
     const handleDeleteBook = async (bookId) => { try { await axios.delete(`${URL_BOOK}/${bookId}`); await fetchBooks(); } catch (err) { console.log(err) } }
 
+    // Handler for AI insights
+    const handleAskAI = (book) => {
+        setSelectedBookForAI(book);
+        setIsAIModalOpen(true);
+    }
+
+
     useEffect(() => { fetchBooks(); fetchCategories(); }, [])
 
     // 3. ปรับปรุง Logic การกรอง (รวม Category + Search)
@@ -151,7 +158,7 @@ function BookScreen() {
 
                     {/* ส่วนขวา: ปุ่ม Add New Book */}
                     <Col xs={24} md={6} style={{ textAlign: 'right' }}>
-                        <Button type="primary" size="large" icon={<PlusOutlined />} onClick={() => setIsAddModalOpen(true)}>
+                        <Button type="primary" size="large" icon={<PlusOutlined />} onClick={() => navigate('/books/add')}>
                             Create New Book
                         </Button>
                     </Col>
@@ -170,31 +177,20 @@ function BookScreen() {
                         data={filteredBooks}
                         onLiked={handleLikeBook}
                         onDeleted={handleDeleteBook}
-                        onEdit={(record) => setEditItem(record)}
+                        onAskAI={handleAskAI}
                     />
                 </Card>
             </Spin>
 
-            <EditBook
-                isOpen={!!editItem}
-                item={editItem}
-                categories={categories}
-                onCancel={() => setEditItem(null)}
-                onSave={handleUpdateBook}
+            {/* Gemini AI Modal */}
+            <GeminiBookDetails
+                book={selectedBookForAI}
+                isOpen={isAIModalOpen}
+                onClose={() => {
+                    setIsAIModalOpen(false);
+                    setSelectedBookForAI(null);
+                }}
             />
-
-            <Modal
-                title="Add New Book"
-                open={isAddModalOpen}
-                onCancel={() => setIsAddModalOpen(false)}
-                footer={null}
-                width={600}
-            >
-                <AddBook
-                    onBookAdded={handleAddBook}
-                    categories={categories}
-                />
-            </Modal>
         </div>
     )
 }

@@ -130,7 +130,6 @@ export default function BookList(props) {
       scroll={{ x: 'max-content', y: 600 }}
 
       pagination={{ pageSize: 5 }}
-    // ...
     />
   )
 }

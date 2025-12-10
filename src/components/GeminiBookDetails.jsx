@@ -1,14 +1,12 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Modal, Button, Spin, Card, Typography, Divider, message } from 'antd';
 import { BulbOutlined, RobotOutlined } from '@ant-design/icons';
 import axios from 'axios';
 
 const { Paragraph, Title, Text } = Typography;
 
-// ⚠️ IMPORTANT: Replace with your actual Gemini API key
-// Get it from: https://makersuite.google.com/app/apikey
-const GEMINI_API_KEY = 'YOUR_GEMINI_API_KEY_HERE';
-const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent';
+const GEMINI_API_KEY = import.meta.env.VITE_GEMINI_API_KEY || 'YOUR_GEMINI_API_KEY_HERE';
+const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent';
 
 export default function GeminiBookDetails({ book, isOpen, onClose }) {
     const [loading, setLoading] = useState(false);
@@ -18,9 +16,9 @@ export default function GeminiBookDetails({ book, isOpen, onClose }) {
         if (!book) return;
 
         // Check if API key is set
-        if (GEMINI_API_KEY === 'YOUR_GEMINI_API_KEY_HERE') {
-            message.warning('Please set your Gemini API key in GeminiBookDetails.jsx');
-            setAiResponse('⚠️ Gemini API key not configured.\n\nTo use this feature:\n1. Get your API key from https://makersuite.google.com/app/apikey\n2. Replace GEMINI_API_KEY in src/components/GeminiBookDetails.jsx\n3. Refresh and try again!');
+        if (!GEMINI_API_KEY) {
+            message.warning('Please set VITE_GEMINI_API_KEY in your .env file');
+            setAiResponse('⚠️ Gemini API key not configured.\n\nTo use this feature:\n1. Create a .env file in project root\n2. Add: VITE_GEMINI_API_KEY=your_api_key_here\n3. Get your API key from https://makersuite.google.com/app/apikey\n4. Restart dev server (npm run dev)\n5. Refresh and try again!');
             return;
         }
 
@@ -67,6 +65,8 @@ Keep it concise but informative (around 200-300 words).`;
                 errorMessage = '❌ API key is invalid or doesn\'t have permission.';
             } else if (err.response?.status === 429) {
                 errorMessage = '❌ Rate limit exceeded. Please try again later.';
+            } else if (err.response?.status === 404) {
+                errorMessage = '❌ Model not found. Using deprecated model name.';
             }
 
             setAiResponse(errorMessage + '\n\nError details: ' + (err.response?.data?.error?.message || err.message));
@@ -76,7 +76,7 @@ Keep it concise but informative (around 200-300 words).`;
     };
 
     // Auto-fetch when modal opens
-    useState(() => {
+    useEffect(() => {
         if (isOpen && book && !aiResponse) {
             fetchBookDetails();
         }
