@@ -66,11 +66,11 @@ export default function BookList(props) {
       title: 'Action',
       key: 'action',
       render: (text, record) => (
-        <Space>
+        <Space size="small"> 
           <Button type="primary" onClick={() => props.onLiked(record)}>Like</Button>
           <Button onClick={() => props.onEdit(record)}>Edit</Button>
           <Popconfirm title="Are you sure?" onConfirm={() => props.onDeleted(record.id)}>
-            <Button danger type="dashed">Delete</Button>
+            <Button danger>Delete</Button> {/* ใช้ปุ่มธรรมดา (ไม่ต้อง dashed) จะดูเต็มกว่า */}
           </Popconfirm>
         </Space>
       ),
@@ -82,11 +82,13 @@ export default function BookList(props) {
       rowKey="id"
       dataSource={props.data}
       columns={columns}
-      pagination={{ pageSize: 5 }} 
+      pagination={{ pageSize: 5 }}
+      scroll={{ x: 1000 }} 
       rowClassName={(record, index) => {
         if (record.stock < 30) {
           return "red-row";
         }
-      }} />
+      }} 
+    />
   )
 }

@@ -80,7 +80,7 @@ export default function LoginScreen(props) {
                     type="primary"
                     htmlType="submit" 
                     loading={isLoading}>
-                    Submit
+                    Login
                 </Button>
             </Form.Item>
         </Form>
