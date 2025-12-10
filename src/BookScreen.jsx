@@ -2,9 +2,11 @@ import './App.css'
 import { useState, useEffect } from 'react'
 import { Divider, Spin, Select, Tag, Button, Modal, Card, Row, Col, Input } from 'antd' // 1. Import Input
 import { PlusOutlined, SearchOutlined } from '@ant-design/icons';
+import { useNavigate } from 'react-router-dom';
 import BookList from './components/BookList'
 import AddBook from './components/AddBook'
 import EditBook from './components/EditBook'
+import GeminiBookDetails from './components/GeminiBookDetails'
 import axios from 'axios'
 
 axios.defaults.baseURL = "http://localhost:3000"
@@ -31,6 +33,7 @@ const tagRender = (props) => {
 };
 
 function BookScreen() {
+    const navigate = useNavigate();
     const [totalAmount, setTotalAmount] = useState(0);
     const [bookData, setBookData] = useState([])
     const [loading, setLoading] = useState(false);
@@ -38,6 +41,10 @@ function BookScreen() {
     const [editItem, setEditItem] = useState(null);
     const [filterCategories, setFilterCategories] = useState([]);
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+
+    // Gemini AI state
+    const [selectedBookForAI, setSelectedBookForAI] = useState(null);
+    const [isAIModalOpen, setIsAIModalOpen] = useState(false);
 
     // 2. เพิ่ม State สำหรับการค้นหา
     const [searchText, setSearchText] = useState("");
@@ -61,8 +68,10 @@ function BookScreen() {
     const handleUpdateBook = async (updatedValues) => {
         try {
             setLoading(true);
+            // ลบ fields ที่ Backend ไม่รับออก
             const { id, category, createdAt, updatedAt, ...cleanData } = updatedValues;
-            await axios.patch(`${URL_BOOK}/${editItem.id}`, cleanData);
+            // ใช้ id จาก updatedValues แทน editItem.id
+            await axios.patch(`${URL_BOOK}/${id}`, cleanData);
             setEditItem(null);
             await fetchBooks();
         } catch (err) { console.log(err) }
@@ -105,7 +114,7 @@ function BookScreen() {
     );
 
     return (
-        <div style={{ padding: '20px' }}>
+        <div style={{ padding: '12px' }}>
 
             {/* Header Controls */}
             <div style={{ marginBottom: '24px' }}>

@@ -145,15 +145,17 @@ function App() {
           {isLoggedIn ? (
             <div style={{
               background: '#fff',
-              padding: '32px',
+              padding: '24px',
               borderRadius: '12px',
               width: '100%',
-              maxWidth: '1200px',
+              maxWidth: '1600px',
               border: '1px solid #eee',
 
               /* 2. แก้ไขส่วนนี้: กำหนดให้กล่องนี้ยืดเต็มพื้นที่ที่เหลือ และมี Scrollbar ของตัวเอง */
               height: '100%',
-              overflowX: 'hidden'
+              overflowX: 'hidden',
+              overflowY: 'auto',
+              boxSizing: 'border-box'
             }}>
               {currentScreen === 'home' ? <BookScreen /> : <DashboardScreen />}
             </div>

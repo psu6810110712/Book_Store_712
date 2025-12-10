@@ -1,4 +1,4 @@
-import { Modal, Form, Input, InputNumber, Select } from 'antd';
+import { Modal, Form, Input, InputNumber, Select, Row, Col } from 'antd';
 import { useEffect } from 'react';
 
 export default function EditBook(props) {
@@ -11,7 +11,7 @@ export default function EditBook(props) {
       // หมายเหตุ: ต้องแปลง category เป็น categoryId เพื่อให้ Select แสดงผลถูกต้อง
       form.setFieldsValue({
         ...props.item,
-        categoryId: props.item.category?.id 
+        categoryId: props.item.category?.id
       });
     }
   }, [props.isOpen, props.item, form]);
@@ -20,8 +20,13 @@ export default function EditBook(props) {
     form
       .validateFields()
       .then((values) => {
+        // รวม id จาก props.item เข้าไปด้วย เพื่อให้ BookScreen รู้ว่าจะ update record ไหน
+        const updatedData = {
+          ...values,
+          id: props.item.id
+        };
         // ส่งข้อมูลที่แก้แล้วกลับไปให้แม่ (BookScreen)
-        props.onSave(values);
+        props.onSave(updatedData);
       })
       .catch((info) => {
         console.log('Validate Failed:', info);
@@ -36,28 +41,65 @@ export default function EditBook(props) {
       onCancel={props.onCancel}
       okText="Save"
       cancelText="Cancel"
+      width={600}
     >
       <Form
         form={form}
         layout="vertical"
         name="form_in_modal"
       >
-        <Form.Item name="title" label="Title" rules={[{ required: true }]}>
-          <Input />
+        {/* จัด Title กับ Author ให้อยู่บรรทัดเดียวกัน */}
+        <Row gutter={16}>
+          <Col span={12}>
+            <Form.Item name="title" label="Title" rules={[{ required: true }]}>
+              <Input placeholder="Enter title" />
+            </Form.Item>
+          </Col>
+          <Col span={12}>
+            <Form.Item name="author" label="Author" rules={[{ required: true }]}>
+              <Input placeholder="Enter author" />
+            </Form.Item>
+          </Col>
+        </Row>
+
+        {/* เพิ่ม Description */}
+        <Form.Item name="description" label="Description">
+          <Input.TextArea rows={2} placeholder="Brief description..." />
         </Form.Item>
-        <Form.Item name="author" label="Author" rules={[{ required: true }]}>
-          <Input />
+
+        {/* Price, Stock, และ Category ในบรรทัดเดียวกัน */}
+        <Row gutter={16}>
+          <Col span={8}>
+            <Form.Item name="price" label="Price" rules={[{ required: true }]}>
+              <InputNumber style={{ width: '100%' }} min={0} />
+            </Form.Item>
+          </Col>
+          <Col span={8}>
+            <Form.Item name="stock" label="Stock" rules={[{ required: true }]}>
+              <InputNumber style={{ width: '100%' }} min={0} />
+            </Form.Item>
+          </Col>
+          <Col span={8}>
+            <Form.Item name="categoryId" label="Category" rules={[{ required: true }]}>
+              <Select
+                allowClear
+                options={props.categories}
+                placeholder="Select"
+              />
+            </Form.Item>
+          </Col>
+        </Row>
+
+        {/* เพิ่ม ISBN */}
+        <Form.Item name="isbn" label="ISBN">
+          <Input placeholder="Enter ISBN" />
         </Form.Item>
-        <Form.Item name="price" label="Price" rules={[{ required: true }]}>
-          <InputNumber style={{ width: '100%' }} />
+
+        {/* เพิ่มช่องใส่ Link รูปภาพ */}
+        <Form.Item name="coverUrl" label="Cover Image URL">
+          <Input placeholder="e.g. https://example.com/image.jpg" />
         </Form.Item>
-        <Form.Item name="stock" label="Stock" rules={[{ required: true }]}>
-          <InputNumber style={{ width: '100%' }} />
-        </Form.Item>
-        <Form.Item name="categoryId" label="Category" rules={[{ required: true }]}>
-           {/* รับ categories มาจาก props แทนการดึงเอง */}
-          <Select options={props.categories} />
-        </Form.Item>
+
       </Form>
     </Modal>
   );

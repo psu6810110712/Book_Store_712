@@ -3,11 +3,12 @@
   font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
   line-height: 1.5;
   font-weight: 400;
-  
+
   /* ตัวแปรสีสำหรับ Scrollbar โหมดสว่าง */
   --scroll-thumb: rgba(0, 0, 0, 0.2);
   --scroll-track: transparent;
-  --bg-color: #f0f2f5; /* สีพื้นหลังของ Body */
+  --bg-color: #f0f2f5;
+  /* สีพื้นหลังของ Body */
 }
 
 /* ตั้งค่าสีสำหรับโหมดมืด (Dark Mode) */
@@ -16,23 +17,30 @@
   --bg-color: #000000;
 }
 
-*, *::before, *::after {
+*,
+*::before,
+*::after {
   box-sizing: border-box;
 }
 
-html, body {
+html,
+body {
   margin: 0;
   padding: 0;
   width: 100%;
-  min-height: 100vh; 
-  overflow-x: hidden; /* ซ่อนแค่แนวนอน */
+  max-width: 100vw;
+  min-height: 100vh;
+  overflow-x: hidden;
+  /* ซ่อนแค่แนวนอน */
   background-color: #f0f2f5;
 }
 
 #root {
   width: 100%;
+  max-width: 100%;
   display: flex;
   flex-direction: column;
+  overflow-x: hidden;
 }
 
 /* --- Minimal Scrollbar CSS --- */
