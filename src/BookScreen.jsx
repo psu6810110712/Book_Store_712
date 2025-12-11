@@ -1,12 +1,13 @@
 import './App.css'
-import { useState, useEffect } from 'react'
-import { Divider, Spin, Select, Tag, Button, Modal, Card, Row, Col, Input } from 'antd' // 1. Import Input
+import { useState, useEffect, useMemo, useCallback } from 'react'
+import { Divider, Spin, Select, Tag, Button, Modal, Card, Row, Col, Input } from 'antd'
 import { PlusOutlined, SearchOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 import BookList from './components/BookList'
 import AddBook from './components/AddBook'
 import EditBook from './components/EditBook'
 import GeminiBookDetails from './components/GeminiBookDetails'
+import { useLanguage } from './contexts/LanguageContext'
 import axios from 'axios'
 
 axios.defaults.baseURL = "http://localhost:3000"
@@ -34,7 +35,7 @@ const tagRender = (props) => {
 
 function BookScreen() {
     const navigate = useNavigate();
-    const [totalAmount, setTotalAmount] = useState(0);
+    const { t } = useLanguage();
     const [bookData, setBookData] = useState([])
     const [loading, setLoading] = useState(false);
     const [categories, setCategories] = useState([]);
@@ -77,39 +78,54 @@ function BookScreen() {
         } catch (err) { console.log(err) }
         finally { setLoading(false) }
     }
-    const handleAddBook = async (newBook) => { try { await axios.post(URL_BOOK, newBook); setIsAddModalOpen(false); await fetchBooks(); } catch (err) { console.log(err) } }
-    const handleLikeBook = async (book) => { try { await axios.post(`${URL_BOOK}/${book.id}/like`); await fetchBooks(); } catch (err) { console.log(err) } }
-    const handleDeleteBook = async (bookId) => { try { await axios.delete(`${URL_BOOK}/${bookId}`); await fetchBooks(); } catch (err) { console.log(err) } }
+
+    // Memoized handlers to prevent unnecessary re-renders
+    const handleAddBook = useCallback(async (newBook) => {
+        try { await axios.post(URL_BOOK, newBook); setIsAddModalOpen(false); await fetchBooks(); }
+        catch (err) { console.error(err) }
+    }, []);
+
+    const handleLikeBook = useCallback(async (book) => {
+        try { await axios.post(`${URL_BOOK}/${book.id}/like`); await fetchBooks(); }
+        catch (err) { console.error(err) }
+    }, []);
+
+    const handleDeleteBook = useCallback(async (bookId) => {
+        try { await axios.delete(`${URL_BOOK}/${bookId}`); await fetchBooks(); }
+        catch (err) { console.error(err) }
+    }, []);
 
     // Handler for AI insights
-    const handleAskAI = (book) => {
+    const handleAskAI = useCallback((book) => {
         setSelectedBookForAI(book);
         setIsAIModalOpen(true);
-    }
+    }, []);
 
 
     useEffect(() => { fetchBooks(); fetchCategories(); }, [])
 
-    // 3. ปรับปรุง Logic การกรอง (รวม Category + Search)
-    const filteredBooks = bookData.filter(book => {
-        // กรอง 1: Category
-        const matchCategory = filterCategories.length === 0 ||
-            (book.category && filterCategories.includes(book.category.id)); // เช็ค book.category ก่อน
+    // Memoized filtered books to prevent recalculation on every render
+    const filteredBooks = useMemo(() => {
+        return bookData.filter(book => {
+            // Filter 1: Category
+            const matchCategory = filterCategories.length === 0 ||
+                (book.category && filterCategories.includes(book.category.id));
 
-        // กรอง 2: Search Text
-        if (!searchText) return matchCategory;
+            // Filter 2: Search Text
+            if (!searchText) return matchCategory;
 
-        // เช็คว่ามีค่าใน field นั้นไหมก่อนเรียก toString()
-        const rawValue = book[searchType];
-        const valueToSearch = rawValue ? rawValue.toString().toLowerCase() : "";
-        const keyword = searchText.toLowerCase();
+            const rawValue = book[searchType];
+            const valueToSearch = rawValue ? rawValue.toString().toLowerCase() : "";
+            const keyword = searchText.toLowerCase();
 
-        return matchCategory && valueToSearch.includes(keyword);
-    });
-    useEffect(() => {
-        const sum = filteredBooks.reduce((total, book) => total + (Number(book.price) * Number(book.stock)), 0);
-        setTotalAmount(sum);
-    }, [filteredBooks])
+            return matchCategory && valueToSearch.includes(keyword);
+        });
+    }, [bookData, filterCategories, searchText, searchType]);
+
+    // Memoized total amount calculation
+    const totalAmount = useMemo(() => {
+        return filteredBooks.reduce((total, book) => total + (Number(book.price) * Number(book.stock)), 0);
+    }, [filteredBooks]);
 
     // 4. สร้างส่วน Dropdown เลือกประเภท (สำหรับใส่หน้าช่อง Search)
     const selectBefore = (
@@ -127,47 +143,56 @@ function BookScreen() {
             <div style={{ marginBottom: '24px' }}>
                 <Row gutter={[16, 16]} align="middle" justify="space-between">
 
-                    {/* ส่วนซ้าย: Filter Category */}
+                    {/* Filter Category */}
                     <Col xs={24} md={8}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                            <span style={{ fontWeight: 'bold' }}>Filter:</span>
+                            <span style={{ fontWeight: 'bold' }}>{t('filter')}:</span>
                             <Select
                                 mode="multiple"
                                 tagRender={tagRender}
                                 style={{ width: '100%' }}
                                 options={categories}
-                                placeholder="Select categories..."
+                                placeholder={t('selectCategories')}
                                 onChange={(values) => setFilterCategories(values)}
                                 allowClear
                             />
                         </div>
                     </Col>
 
-                    {/* ส่วนกลาง: Search Bar (ตามแบบในรูป) */}
+                    {/* Search Bar */}
                     <Col xs={24} md={10}>
                         <Input.Search
-                            addonBefore={selectBefore} // ใส่ Dropdown ไว้ด้านหน้า
-                            placeholder="Search terms..."
+                            addonBefore={selectBefore}
+                            placeholder={t('searchPlaceholder')}
                             allowClear
                             enterButton
                             size="large"
-                            onSearch={(value) => setSearchText(value)} // ค้นหาเมื่อกด Enter หรือปุ่มแว่นขยาย
-                            onChange={(e) => setSearchText(e.target.value)} // หรือค้นหาทันทีที่พิมพ์ (Real-time)
+                            onSearch={(value) => setSearchText(value)}
+                            onChange={(e) => setSearchText(e.target.value)}
                         />
                     </Col>
 
-                    {/* ส่วนขวา: ปุ่ม Add New Book */}
+                    {/* Add New Book Button */}
                     <Col xs={24} md={6} style={{ textAlign: 'right' }}>
                         <Button type="primary" size="large" icon={<PlusOutlined />} onClick={() => navigate('/books/add')}>
-                            Create New Book
+                            {t('createNewBook')}
                         </Button>
                     </Col>
                 </Row>
             </div>
 
-            <Card style={{ marginBottom: '24px', textAlign: 'center', background: '#f9f9f9' }}>
-                <h3 style={{ margin: 0, color: '#555' }}>
-                    Total Value: <span style={{ color: '#1890ff', fontSize: '1.2em' }}>${totalAmount.toLocaleString()}</span>
+            <Card
+                className="no-select"
+                style={{
+                    marginBottom: '24px',
+                    textAlign: 'center',
+                    background: 'transparent',
+                    border: '1px dashed #1890ff'
+                }}
+                bodyStyle={{ padding: '16px' }}
+            >
+                <h3 className="no-select" style={{ margin: 0, opacity: 0.8 }}>
+                    💰 {t('totalValue')}: <span style={{ color: '#1890ff', fontSize: '1.3em', fontWeight: 'bold' }}>${totalAmount.toLocaleString()}</span>
                 </h3>
             </Card>
 

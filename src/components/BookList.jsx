@@ -1,27 +1,29 @@
 import { Table, Button, Space, Popconfirm, Tag, Image } from 'antd';
 import { useNavigate } from 'react-router-dom';
 import { BulbOutlined } from '@ant-design/icons';
+import { useLanguage } from '../contexts/LanguageContext';
 
 export default function BookList(props) {
   const navigate = useNavigate();
+  const { t } = useLanguage();
 
   const columns = [
     {
-      title: 'Title',
+      title: t('title'),
       dataIndex: 'title',
       key: 'title',
       width: 180,
       sorter: (a, b) => a.title.localeCompare(b.title),
     },
     {
-      title: 'Author',
+      title: t('author'),
       dataIndex: 'author',
       key: 'author',
       width: 150,
       sorter: (a, b) => a.author.localeCompare(b.author),
     },
     {
-      title: 'Description',
+      title: t('description'),
       dataIndex: 'description',
       key: 'description',
       width: 200,
@@ -37,51 +39,46 @@ export default function BookList(props) {
       ),
     },
     {
-      title: 'Price',
+      title: t('price'),
       dataIndex: 'price',
       key: 'price',
       width: 100,
       sorter: (a, b) => a.price - b.price,
     },
     {
-      title: 'ISBN',
+      title: t('isbn'),
       dataIndex: 'isbn',
       key: 'isbn',
       width: 140,
     },
     {
-      title: 'Stock',
+      title: t('stock'),
       dataIndex: 'stock',
       key: 'stock',
       width: 80,
       sorter: (a, b) => a.stock - b.stock,
     },
     {
-      title: "Cover",
+      title: t('cover'),
       dataIndex: 'coverUrl',
       width: 100,
-      align: 'center', // จัดกึ่งกลางคอลัมน์
+      align: 'center',
       render: (text) => (
         <Image
           src={`http://localhost:3080/${text}`}
-
-          // 1. กำหนดขนาดที่แน่นอน
           width={80}
           height={120}
-
-          // 2. ปรับ Style ให้ภาพไม่บีบ (สำคัญ)
           style={{
-            objectFit: 'cover', // ตัดส่วนเกินออก รักษาอัตราส่วน
-            borderRadius: '6px', // มุมมนนิดหน่อยให้ดูสวย
-            border: '1px solid #f0f0f0' // ใส่ขอบบางๆ กันภาพกลืนกับพื้นหลัง
+            objectFit: 'cover',
+            borderRadius: '6px',
+            border: '1px solid #f0f0f0'
           }}
-
-          fallback="https://placehold.co/80x120?text=No+Image" // รูปสำรองถ้าหาไม่เจอ
+          fallback="https://placehold.co/80x120?text=No+Image"
         />
       ),
     },
     {
-      title: 'Category',
+      title: t('category'),
       dataIndex: 'category',
       key: 'category',
       width: 120,
@@ -90,30 +87,30 @@ export default function BookList(props) {
       ),
     },
     {
-      title: 'Liked',
+      title: t('liked'),
       dataIndex: 'likeCount',
       key: 'likeCount',
       width: 80,
       sorter: (a, b) => (a.likeCount || 0) - (b.likeCount || 0),
     },
     {
-      title: 'Action',
+      title: t('action'),
       key: 'action',
       width: 250,
       render: (text, record) => (
         <Space size="small" wrap>
-          <Button type="primary" onClick={() => props.onLiked(record)} size="small">Like</Button>
-          <Button onClick={() => navigate(`/books/edit/${record.id}`)} size="small">Edit</Button>
+          <Button type="primary" onClick={() => props.onLiked(record)} size="small">{t('like')}</Button>
+          <Button onClick={() => navigate(`/books/edit/${record.id}`)} size="small">{t('edit')}</Button>
           <Button
             icon={<BulbOutlined />}
             onClick={() => props.onAskAI && props.onAskAI(record)}
             size="small"
             title="Ask AI about this book"
           >
-            AI
+            {t('askAI')}
           </Button>
-          <Popconfirm title="Are you sure?" onConfirm={() => props.onDeleted(record.id)}>
-            <Button danger size="small">Delete</Button>
+          <Popconfirm title={t('deleteConfirm')} onConfirm={() => props.onDeleted(record.id)}>
+            <Button danger size="small">{t('delete')}</Button>
           </Popconfirm>
         </Space>
       ),
@@ -125,10 +122,7 @@ export default function BookList(props) {
       rowKey="id"
       dataSource={props.data}
       columns={columns}
-
-      // ✅ เพิ่มบรรทัดนี้: ถ้าตารางกว้างเกิน ให้ขึ้น scrollbar ที่ตัวตารางแทน
-      scroll={{ x: 'max-content', y: 600 }}
-
+      scroll={{ x: 'max-content' }}
       pagination={{ pageSize: 5 }}
     />
   )

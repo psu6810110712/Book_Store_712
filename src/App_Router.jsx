@@ -1,17 +1,27 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, lazy, Suspense } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import LoginScreen from './LoginScreen';
-import BookScreen from './BookScreen';
-import DashboardScreen from './DashboardScreen';
-import AddBookPage from './AddBookPage';
-import EditBookPage from './EditBookPage';
-import CategoryManagementPage from './CategoryManagementPage';
-import BookRecommendationPage from './BookRecommendationPage';
-import StockAlertsPage from './StockAlertsPage';
 import { LanguageProvider, useLanguage } from './contexts/LanguageContext';
 import axios from 'axios';
-import { Layout, Menu, theme, Button, Tooltip, Popconfirm, ConfigProvider, Switch, Dropdown, Space, Badge } from 'antd';
-import { LogoutOutlined, UserOutlined, ReadOutlined, MoonOutlined, SunOutlined, AppstoreOutlined, FolderOutlined, StarOutlined, GlobalOutlined, SettingOutlined, WarningOutlined } from '@ant-design/icons';
+import { Layout, Menu, theme, Button, Tooltip, Popconfirm, ConfigProvider, Switch, Dropdown, Space, Badge, Spin } from 'antd';
+import { LogoutOutlined, UserOutlined, ReadOutlined, MoonOutlined, SunOutlined, AppstoreOutlined, FolderOutlined, StarOutlined, GlobalOutlined, SettingOutlined, WarningOutlined, PlusCircleOutlined } from '@ant-design/icons';
+import ErrorBoundary from './components/ErrorBoundary';
+
+// Lazy load heavy components for better performance
+const BookScreen = lazy(() => import('./BookScreen'));
+const DashboardScreen = lazy(() => import('./DashboardScreen'));
+const AddBookPage = lazy(() => import('./AddBookPage'));
+const EditBookPage = lazy(() => import('./EditBookPage'));
+const CategoryManagementPage = lazy(() => import('./CategoryManagementPage'));
+const BookRecommendationPage = lazy(() => import('./BookRecommendationPage'));
+const StockAlertsPage = lazy(() => import('./StockAlertsPage'));
+
+// Loading fallback component
+const PageLoader = () => (
+    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '400px' }}>
+        <Spin size="large" tip="Loading..." />
+    </div>
+);
 
 const { Header, Content, Footer } = Layout;
 
@@ -79,6 +89,7 @@ function AppLayout() {
 
     const menuItems = [
         { key: '/books', icon: <ReadOutlined />, label: t('books'), onClick: () => { navigate('/books'); setCurrentPath('/books'); } },
+        { key: '/books/add', icon: <PlusCircleOutlined />, label: 'Add Book', onClick: () => { navigate('/books/add'); setCurrentPath('/books/add'); } },
         { key: '/stock-alerts', icon: <WarningOutlined />, label: 'Stock Alerts', onClick: () => { navigate('/stock-alerts'); setCurrentPath('/stock-alerts'); } },
         { key: '/dashboard', icon: <AppstoreOutlined />, label: t('dashboard'), onClick: () => { navigate('/dashboard'); setCurrentPath('/dashboard'); } },
         { key: '/recommendations', icon: <StarOutlined />, label: t('recommendations'), onClick: () => { navigate('/recommendations'); setCurrentPath('/recommendations'); } },
@@ -247,16 +258,18 @@ function AppLayout() {
                         overflowY: 'auto',
                         boxSizing: 'border-box'
                     }}>
-                        <Routes>
-                            <Route path="/books" element={<BookScreen />} />
-                            <Route path="/books/add" element={<AddBookPage />} />
-                            <Route path="/books/edit/:id" element={<EditBookPage />} />
-                            <Route path="/stock-alerts" element={<StockAlertsPage />} />
-                            <Route path="/recommendations" element={<BookRecommendationPage />} />
-                            <Route path="/dashboard" element={<DashboardScreen />} />
-                            <Route path="/categories" element={<CategoryManagementPage />} />
-                            <Route path="*" element={<Navigate to="/books" replace />} />
-                        </Routes>
+                        <Suspense fallback={<PageLoader />}>
+                            <Routes>
+                                <Route path="/books" element={<BookScreen />} />
+                                <Route path="/books/add" element={<AddBookPage />} />
+                                <Route path="/books/edit/:id" element={<EditBookPage />} />
+                                <Route path="/stock-alerts" element={<StockAlertsPage />} />
+                                <Route path="/recommendations" element={<BookRecommendationPage />} />
+                                <Route path="/dashboard" element={<DashboardScreen />} />
+                                <Route path="/categories" element={<CategoryManagementPage />} />
+                                <Route path="*" element={<Navigate to="/books" replace />} />
+                            </Routes>
+                        </Suspense>
                     </div>
                 </Content>
 
@@ -270,14 +283,16 @@ function AppLayout() {
 
 function App() {
     return (
-        <LanguageProvider>
-            <BrowserRouter>
-                <Routes>
-                    <Route path="/login" element={<LoginScreen onLoginSuccess={() => window.location.href = '/books'} />} />
-                    <Route path="/*" element={<AppLayout />} />
-                </Routes>
-            </BrowserRouter>
-        </LanguageProvider>
+        <ErrorBoundary>
+            <LanguageProvider>
+                <BrowserRouter>
+                    <Routes>
+                        <Route path="/login" element={<LoginScreen onLoginSuccess={() => window.location.href = '/books'} />} />
+                        <Route path="/*" element={<AppLayout />} />
+                    </Routes>
+                </BrowserRouter>
+            </LanguageProvider>
+        </ErrorBoundary>
     );
 }
 

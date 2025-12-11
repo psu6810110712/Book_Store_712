@@ -78,7 +78,11 @@ export default function DashboardScreen() {
       // Chart 2: Books by Category (Pie Chart) - FIXED
       const categoryMap = {};
       booksData.forEach(book => {
-        const catName = book.book_category_name || 'Uncategorized';
+        // Check multiple possible field names for category
+        const catName = book.book_category_name
+          || (book.category && typeof book.category === 'object' ? book.category.name : null)
+          || book.category_name
+          || 'Uncategorized';
         if (categoryMap[catName]) {
           categoryMap[catName]++;
         } else {
@@ -162,7 +166,7 @@ export default function DashboardScreen() {
     {
       title: 'Value',
       key: 'value',
-      render: (_, record) => `฿${(record.price * record.stock).toFixed(2)}`,
+      render: (_, record) => `$${(record.price * record.stock).toFixed(2)}`,
     },
   ];
 
@@ -227,7 +231,7 @@ export default function DashboardScreen() {
               value={statistics.totalValue}
               prefix={<DollarOutlined />}
               precision={2}
-              suffix="฿"
+              suffix="$"
               valueStyle={{ color: '#1890ff' }}
             />
           </Card>

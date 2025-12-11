@@ -69,3 +69,58 @@ body {
   scrollbar-width: thin;
   scrollbar-color: var(--scroll-thumb) var(--scroll-track);
 }
+
+/* === Prevent Text Selection on UI Elements === */
+
+/* Headers, Titles, Labels - ป้องกัน copy */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+.ant-card-head,
+.ant-modal-title,
+.ant-menu,
+.ant-menu-item,
+.ant-btn,
+.ant-tag,
+.ant-badge,
+.ant-statistic-title,
+.ant-alert-message,
+.ant-result-title,
+.ant-result-subtitle,
+.ant-empty-description,
+.ant-spin-text,
+.ant-tabs-tab,
+.ant-pagination,
+.demo-logo,
+label {
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+}
+
+/* Allow selection in table cells and inputs */
+.ant-table-cell,
+.ant-input,
+.ant-input-textarea,
+.ant-select-selection-item,
+td,
+input,
+textarea {
+  user-select: text;
+  -webkit-user-select: text;
+  -moz-user-select: text;
+  -ms-user-select: text;
+}
+
+/* Utility class for explicit no-select */
+.no-select,
+.no-select * {
+  user-select: none !important;
+  -webkit-user-select: none !important;
+  -moz-user-select: none !important;
+  -ms-user-select: none !important;
+}

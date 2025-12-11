@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router-dom';
-import { Button, Form, Input, InputNumber, Select, Card, Row, Col, message } from 'antd';
-import { ArrowLeftOutlined } from '@ant-design/icons';
+import { Button, Form, Input, InputNumber, Select, Card, Row, Col, message, Badge, Divider, Space, Alert } from 'antd';
+import { ArrowLeftOutlined, PlusOutlined, CheckCircleOutlined, RocketOutlined } from '@ant-design/icons';
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 
@@ -12,6 +12,7 @@ export default function AddBookPage() {
     const [form] = Form.useForm();
     const [categories, setCategories] = useState([]);
     const [loading, setLoading] = useState(false);
+    const [addedBooks, setAddedBooks] = useState([]); // Track added books
 
     useEffect(() => {
         fetchCategories();
@@ -27,13 +28,18 @@ export default function AddBookPage() {
         }
     };
 
-    const onFinish = async (values) => {
+    // Save and continue adding more books
+    const handleSaveAndContinue = async (values) => {
         try {
             setLoading(true);
             await axios.post(URL_BOOK, values);
-            message.success('Book added successfully!');
+            message.success(`✅ "${values.title}" added successfully! You can add more.`);
+
+            // Track added book
+            setAddedBooks(prev => [...prev, { title: values.title, author: values.author }]);
+
+            // Clear form for next entry
             form.resetFields();
-            navigate('/books');
         } catch (err) {
             console.error(err);
             message.error('Failed to add book');
@@ -42,18 +48,64 @@ export default function AddBookPage() {
         }
     };
 
+    // Deploy/Finish - go back to books
+    const handleDeploy = () => {
+        if (addedBooks.length > 0) {
+            message.success(`🚀 ${addedBooks.length} book(s) deployed successfully!`);
+        }
+        navigate('/books');
+    };
+
     return (
-        <div style={{ padding: '24px', maxWidth: '800px', margin: '0 auto' }}>
-            <Button
-                icon={<ArrowLeftOutlined />}
-                onClick={() => navigate('/books')}
-                style={{ marginBottom: '16px' }}
-            >
-                Back to Books
-            </Button>
+        <div style={{ padding: '24px', maxWidth: '900px', margin: '0 auto' }}>
+            <Row justify="space-between" align="middle" style={{ marginBottom: '16px' }}>
+                <Button
+                    icon={<ArrowLeftOutlined />}
+                    onClick={() => navigate('/books')}
+                >
+                    Back to Books
+                </Button>
+
+                {/* Deploy button with badge */}
+                <Badge count={addedBooks.length} showZero={false}>
+                    <Button
+                        type="primary"
+                        icon={<RocketOutlined />}
+                        onClick={handleDeploy}
+                        style={{
+                            background: addedBooks.length > 0 ? '#52c41a' : undefined,
+                            borderColor: addedBooks.length > 0 ? '#52c41a' : undefined
+                        }}
+                    >
+                        {addedBooks.length > 0 ? `Deploy ${addedBooks.length} Book(s)` : 'Deploy & Exit'}
+                    </Button>
+                </Badge>
+            </Row>
+
+            {/* Show added books summary */}
+            {addedBooks.length > 0 && (
+                <Alert
+                    message={`📚 ${addedBooks.length} book(s) added in this session`}
+                    description={
+                        <Space wrap size="small">
+                            {addedBooks.map((book, index) => (
+                                <Badge
+                                    key={index}
+                                    status="success"
+                                    text={`${book.title} by ${book.author}`}
+                                />
+                            ))}
+                        </Space>
+                    }
+                    type="success"
+                    showIcon
+                    icon={<CheckCircleOutlined />}
+                    style={{ marginBottom: '16px' }}
+                />
+            )}
 
             <Card title="📚 Add New Book" bordered={false}>
-                <Form form={form} layout="vertical" onFinish={onFinish}>
+                <Form form={form} layout="vertical" onFinish={handleSaveAndContinue}>
 
                     <Row gutter={16}>
                         <Col span={12}>
@@ -102,13 +154,35 @@ export default function AddBookPage() {
                         <Input placeholder="e.g. https://example.com/image.jpg" />
                     </Form.Item>
 
-                    <Form.Item style={{ textAlign: 'right', marginTop: '24px' }}>
-                        <Button onClick={() => navigate('/books')} style={{ marginRight: '8px' }}>
-                            Cancel
-                        </Button>
-                        <Button type="primary" htmlType="submit" loading={loading}>
-                            Add Book
-                        </Button>
+                    <Divider />
+
+                    <Form.Item style={{ marginBottom: 0 }}>
+                        <Row justify="space-between">
+                            <Button onClick={() => navigate('/books')}>
+                                Cancel
+                            </Button>
+                            <Space>
+                                <Button
+                                    type="primary"
+                                    htmlType="submit"
+                                    loading={loading}
+                                    icon={<PlusOutlined />}
+                                >
+                                    Save & Add Another
+                                </Button>
+                                <Button
+                                    type="primary"
+                                    icon={<RocketOutlined />}
+                                    onClick={handleDeploy}
+                                    style={{
+                                        background: '#52c41a',
+                                        borderColor: '#52c41a'
+                                    }}
+                                >
+                                    Deploy All
+                                </Button>
+                            </Space>
+                        </Row>
                     </Form.Item>
 
                 </Form>

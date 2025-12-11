@@ -1,34 +1,53 @@
 import { createContext, useContext, useState, useEffect } from 'react';
 
-// Translation strings
 const translations = {
     en: {
         // Navigation
         books: 'Books',
+        addBook: 'Add Book',
+        stockAlerts: 'Stock Alerts',
         dashboard: 'Dashboard',
         categories: 'Categories',
         recommendations: 'Recommendations',
         logout: 'Logout',
         logoutConfirm: 'Are you sure you want to logout?',
 
-        // Book List
-        searchPlaceholder: 'Search books...',
-        addBook: 'Add Book',
-        editBook: 'Edit Book',
-        deleteBook: 'Delete Book',
-        deleteConfirm: 'Are you sure you want to delete this book?',
-        actions: 'Actions',
+        // Book List & Table
+        filter: 'Filter',
+        selectCategories: 'Select categories...',
+        searchPlaceholder: 'Search terms...',
+        createNewBook: 'Create New Book',
+        totalValue: 'Total Value',
 
-        // Book Form
+        // Table Headers
         title: 'Title',
         author: 'Author',
-        price: 'Price',
-        stock: 'Stock',
-        category: 'Category',
         description: 'Description',
+        price: 'Price',
+        isbn: 'ISBN',
+        stock: 'Stock',
+        cover: 'Cover',
+        category: 'Category',
+        liked: 'Liked',
+        action: 'Action',
+
+        // Table Actions
+        like: 'Like',
+        edit: 'Edit',
+        delete: 'Delete',
+        deleteConfirm: 'Are you sure?',
+
+        // Add/Edit Book
+        editBook: 'Edit Book',
         save: 'Save',
         cancel: 'Cancel',
         submit: 'Submit',
+        saveAndAddAnother: 'Save & Add Another',
+        deployAll: 'Deploy All',
+        backToBooks: 'Back to Books',
+        addNewBook: 'Add New Book',
+        booksAddedSession: 'book(s) added in this session',
+        deployBooks: 'Deploy',
 
         // AI Features
         aiInsights: 'AI Book Insights',
@@ -39,6 +58,7 @@ const translations = {
         keyPoints: 'Key Points',
         recommendFor: 'Recommended For',
         genre: 'Genre',
+        askAI: 'AI',
 
         // Recommendations
         getRecommendations: 'Get AI Recommendations',
@@ -53,14 +73,31 @@ const translations = {
 
         // Dashboard
         totalBooks: 'Total Books',
-        totalValue: 'Total Value',
+        inventoryValue: 'Inventory Value',
         totalStock: 'Total Stock',
         totalLikes: 'Total Likes',
+        lowStockItems: 'Low Stock Items',
+        bestSellers: 'Best Sellers',
+        booksByCategory: 'Books by Category',
+        stockByBook: 'Stock by Book',
+        exportPDF: 'Export PDF',
+        allCategories: 'All Categories',
 
         // Categories
         categoryManagement: 'Category Management',
         addCategory: 'Add Category',
         categoryName: 'Category Name',
+        createdAt: 'Created At',
+        actions: 'Actions',
+        deleteCategory: 'Delete category?',
+        categoryInUse: 'This will affect books in this category.',
+
+        // Stock Alerts
+        lowInventory: 'Low Inventory',
+        allHealthy: 'All stock levels are healthy!',
+        outOfStock: 'OUT OF STOCK',
+        critical: 'CRITICAL',
+        low: 'LOW',
 
         // Settings
         settings: 'Settings',
@@ -75,34 +112,56 @@ const translations = {
         noData: 'No data available',
         yes: 'Yes',
         no: 'No',
+        total: 'Total',
+        items: 'items',
     },
     th: {
         // Navigation
         books: 'หนังสือ',
+        addBook: 'เพิ่มหนังสือ',
+        stockAlerts: 'แจ้งเตือนสต็อก',
         dashboard: 'แดชบอร์ด',
         categories: 'หมวดหมู่',
         recommendations: 'แนะนำหนังสือ',
         logout: 'ออกจากระบบ',
         logoutConfirm: 'คุณต้องการออกจากระบบหรือไม่?',
 
-        // Book List
-        searchPlaceholder: 'ค้นหาหนังสือ...',
-        addBook: 'เพิ่มหนังสือ',
-        editBook: 'แก้ไขหนังสือ',
-        deleteBook: 'ลบหนังสือ',
-        deleteConfirm: 'คุณต้องการลบหนังสือนี้หรือไม่?',
-        actions: 'จัดการ',
+        // Book List & Table
+        filter: 'กรอง',
+        selectCategories: 'เลือกหมวดหมู่...',
+        searchPlaceholder: 'ค้นหา...',
+        createNewBook: 'สร้างหนังสือใหม่',
+        totalValue: 'มูลค่ารวม',
 
-        // Book Form
+        // Table Headers
         title: 'ชื่อหนังสือ',
         author: 'ผู้แต่ง',
-        price: 'ราคา',
-        stock: 'จำนวน',
-        category: 'หมวดหมู่',
         description: 'รายละเอียด',
+        price: 'ราคา',
+        isbn: 'ISBN',
+        stock: 'สต็อก',
+        cover: 'ปก',
+        category: 'หมวดหมู่',
+        liked: 'ถูกใจ',
+        action: 'จัดการ',
+
+        // Table Actions
+        like: 'ถูกใจ',
+        edit: 'แก้ไข',
+        delete: 'ลบ',
+        deleteConfirm: 'คุณแน่ใจหรือไม่?',
+
+        // Add/Edit Book
+        editBook: 'แก้ไขหนังสือ',
         save: 'บันทึก',
         cancel: 'ยกเลิก',
         submit: 'ส่ง',
+        saveAndAddAnother: 'บันทึก & เพิ่มต่อ',
+        deployAll: 'เสร็จสิ้น',
+        backToBooks: 'กลับไปหน้าหนังสือ',
+        addNewBook: 'เพิ่มหนังสือใหม่',
+        booksAddedSession: 'เล่มที่เพิ่มในเซสชันนี้',
+        deployBooks: 'เสร็จสิ้น',
 
         // AI Features
         aiInsights: 'AI วิเคราะห์หนังสือ',
@@ -113,6 +172,7 @@ const translations = {
         keyPoints: 'จุดเด่น',
         recommendFor: 'แนะนำให้',
         genre: 'ประเภท',
+        askAI: 'AI',
 
         // Recommendations
         getRecommendations: 'รับคำแนะนำจาก AI',
@@ -127,14 +187,31 @@ const translations = {
 
         // Dashboard
         totalBooks: 'จำนวนหนังสือ',
-        totalValue: 'มูลค่ารวม',
+        inventoryValue: 'มูลค่าสินค้าคงคลัง',
         totalStock: 'สต็อกรวม',
-        totalLikes: 'ยอดไลค์รวม',
+        totalLikes: 'ยอดถูกใจรวม',
+        lowStockItems: 'สินค้าสต็อกต่ำ',
+        bestSellers: 'หนังสือขายดี',
+        booksByCategory: 'หนังสือตามหมวดหมู่',
+        stockByBook: 'สต็อกตามหนังสือ',
+        exportPDF: 'ส่งออก PDF',
+        allCategories: 'ทุกหมวดหมู่',
 
         // Categories
         categoryManagement: 'จัดการหมวดหมู่',
         addCategory: 'เพิ่มหมวดหมู่',
         categoryName: 'ชื่อหมวดหมู่',
+        createdAt: 'วันที่สร้าง',
+        actions: 'จัดการ',
+        deleteCategory: 'ลบหมวดหมู่?',
+        categoryInUse: 'จะส่งผลต่อหนังสือในหมวดหมู่นี้',
+
+        // Stock Alerts
+        lowInventory: 'สินค้าคงคลังต่ำ',
+        allHealthy: 'สต็อกทุกรายการอยู่ในระดับปกติ!',
+        outOfStock: 'หมด',
+        critical: 'วิกฤต',
+        low: 'ต่ำ',
 
         // Settings
         settings: 'ตั้งค่า',
@@ -149,6 +226,8 @@ const translations = {
         noData: 'ไม่มีข้อมูล',
         yes: 'ใช่',
         no: 'ไม่',
+        total: 'รวม',
+        items: 'รายการ',
     }
 };
 
