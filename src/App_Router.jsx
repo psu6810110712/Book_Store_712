@@ -7,10 +7,11 @@ import AddBookPage from './AddBookPage';
 import EditBookPage from './EditBookPage';
 import CategoryManagementPage from './CategoryManagementPage';
 import BookRecommendationPage from './BookRecommendationPage';
+import StockAlertsPage from './StockAlertsPage';
 import { LanguageProvider, useLanguage } from './contexts/LanguageContext';
 import axios from 'axios';
-import { Layout, Menu, theme, Button, Tooltip, Popconfirm, ConfigProvider, Switch, Dropdown, Space } from 'antd';
-import { LogoutOutlined, UserOutlined, ReadOutlined, MoonOutlined, SunOutlined, AppstoreOutlined, FolderOutlined, StarOutlined, GlobalOutlined, SettingOutlined } from '@ant-design/icons';
+import { Layout, Menu, theme, Button, Tooltip, Popconfirm, ConfigProvider, Switch, Dropdown, Space, Badge } from 'antd';
+import { LogoutOutlined, UserOutlined, ReadOutlined, MoonOutlined, SunOutlined, AppstoreOutlined, FolderOutlined, StarOutlined, GlobalOutlined, SettingOutlined, WarningOutlined } from '@ant-design/icons';
 
 const { Header, Content, Footer } = Layout;
 
@@ -26,6 +27,7 @@ function AppLayout() {
     });
 
     const { language, toggleLanguage, t } = useLanguage();
+    const [lowStockCount, setLowStockCount] = useState(0);
 
     useEffect(() => {
         const token = localStorage.getItem('token');
@@ -38,7 +40,20 @@ function AppLayout() {
         if (isDarkMode) {
             document.documentElement.setAttribute('data-theme', 'dark');
         }
+
+        // Fetch low stock count
+        fetchLowStockCount();
     }, []);
+
+    const fetchLowStockCount = async () => {
+        try {
+            const response = await axios.get('/api/book');
+            const lowStock = response.data.filter(book => book.stock < 10).length;
+            setLowStockCount(lowStock);
+        } catch (error) {
+            console.error('Error fetching low stock count:', error);
+        }
+    };
 
     const toggleTheme = (checked) => {
         setIsDarkMode(checked);
@@ -64,8 +79,9 @@ function AppLayout() {
 
     const menuItems = [
         { key: '/books', icon: <ReadOutlined />, label: t('books'), onClick: () => { navigate('/books'); setCurrentPath('/books'); } },
-        { key: '/recommendations', icon: <StarOutlined />, label: t('recommendations'), onClick: () => { navigate('/recommendations'); setCurrentPath('/recommendations'); } },
+        { key: '/stock-alerts', icon: <WarningOutlined />, label: 'Stock Alerts', onClick: () => { navigate('/stock-alerts'); setCurrentPath('/stock-alerts'); } },
         { key: '/dashboard', icon: <AppstoreOutlined />, label: t('dashboard'), onClick: () => { navigate('/dashboard'); setCurrentPath('/dashboard'); } },
+        { key: '/recommendations', icon: <StarOutlined />, label: t('recommendations'), onClick: () => { navigate('/recommendations'); setCurrentPath('/recommendations'); } },
         { key: '/categories', icon: <FolderOutlined />, label: t('categories'), onClick: () => { navigate('/categories'); setCurrentPath('/categories'); } },
     ];
 
@@ -83,7 +99,7 @@ function AppLayout() {
                         onClick={(e) => { e.stopPropagation(); toggleLanguage(); }}
                         style={{ marginLeft: 8 }}
                     >
-                        {language === 'en' ? '🇺🇸 EN' : '🇹🇭 TH'}
+                        {language === 'en' ? 'EN' : 'TH'}
                     </Button>
                 </div>
             ),
@@ -146,6 +162,17 @@ function AppLayout() {
                     </div>
 
                     <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+                        {/* Low Stock Notification */}
+                        <Tooltip title={`${lowStockCount} items low on stock`}>
+                            <Badge count={lowStockCount} offset={[-5, 5]}>
+                                <Button
+                                    type="text"
+                                    icon={<WarningOutlined style={{ color: lowStockCount > 0 ? '#ff4d4f' : (isDarkMode ? '#fff' : '#555') }} />}
+                                    onClick={() => { navigate('/stock-alerts'); setCurrentPath('/stock-alerts'); }}
+                                />
+                            </Badge>
+                        </Tooltip>
+
                         {/* Language indicator */}
                         <Button
                             type="text"
@@ -156,7 +183,7 @@ function AppLayout() {
                                 fontSize: '14px'
                             }}
                         >
-                            {language === 'en' ? '🇺🇸 EN' : '🇹🇭 TH'}
+                            {language === 'en' ? 'EN' : 'TH'}
                         </Button>
 
                         {/* Settings Dropdown */}
@@ -224,6 +251,7 @@ function AppLayout() {
                             <Route path="/books" element={<BookScreen />} />
                             <Route path="/books/add" element={<AddBookPage />} />
                             <Route path="/books/edit/:id" element={<EditBookPage />} />
+                            <Route path="/stock-alerts" element={<StockAlertsPage />} />
                             <Route path="/recommendations" element={<BookRecommendationPage />} />
                             <Route path="/dashboard" element={<DashboardScreen />} />
                             <Route path="/categories" element={<CategoryManagementPage />} />
