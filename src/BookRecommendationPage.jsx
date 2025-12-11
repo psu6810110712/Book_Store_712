@@ -1,14 +1,13 @@
 import { useState } from 'react';
-import { Card, Form, Input, Select, Button, List, Tag, Divider, Spin, Row, Col, Space } from 'antd';
+import { Card, Form, Input, Select, Button, List, Tag, Divider, Spin, Row, Col, Space, message } from 'antd';
 import { BulbOutlined, BookOutlined, StarOutlined, HeartOutlined } from '@ant-design/icons';
-import axios from 'axios';
+// 1. Remove Axios, import Google Generative AI
+import { GoogleGenerativeAI } from "@google/generative-ai";
 
 const { TextArea } = Input;
 const { Option } = Select;
 
-// ใช้ API key เดียวกับ GeminiBookDetails
-const GEMINI_API_KEY = import.meta.env.VITE_GEMINI_API_KEY || 'YOUR_GEMINI_API_KEY_HERE';
-const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent';
+const GEMINI_API_KEY = import.meta.env.VITE_GEMINI_API_KEY;
 
 export default function BookRecommendationPage() {
     const [form] = Form.useForm();
@@ -22,12 +21,12 @@ export default function BookRecommendationPage() {
     ];
 
     const handleRecommend = async (values) => {
-        if (!GEMINI_API_KEY || GEMINI_API_KEY === 'YOUR_GEMINI_API_KEY_HERE') {
+        if (!GEMINI_API_KEY) {
             setRecommendations([{
                 title: '⚠️ API Key Required',
                 author: 'System',
-                description: 'Please set your Gemini API key in BookRecommendationPage.jsx to use this feature.',
-                reason: 'Get your key from https://makersuite.google.com/app/apikey'
+                description: 'Please set your Gemini API key in your .env file to use this feature.',
+                reason: 'Get your key from https://aistudio.google.com/'
             }]);
             return;
         }
@@ -39,64 +38,52 @@ export default function BookRecommendationPage() {
 
         const prompt = `As a book recommendation expert, suggest 5 books based on the following preferences:
 
-**User Preferences**: ${preferences || 'No specific preferences'}
-**Favorite Genres**: ${selectedGenres?.join(', ') || 'Any genre'}
-**Current Mood**: ${mood || 'Open to anything'}
-**Previously Enjoyed Books**: ${previousBooks || 'None mentioned'}
+        **User Preferences**: ${preferences || 'No specific preferences'}
+        **Favorite Genres**: ${selectedGenres?.join(', ') || 'Any genre'}
+        **Current Mood**: ${mood || 'Open to anything'}
+        **Previously Enjoyed Books**: ${previousBooks || 'None mentioned'}
 
-For each book, provide:
-1. Title
-2. Author
-3. Brief description (2-3 sentences)
-4. Why it matches the user's preferences
+        For each book, provide:
+        1. Title
+        2. Author
+        3. Brief description (2-3 sentences)
+        4. Why it matches the user's preferences
 
-Format your response as JSON array like this:
-[
-  {
-    "title": "Book Title",
-    "author": "Author Name",
-    "description": "Brief description of the book",
-    "reason": "Why this book is recommended"
-  }
-]
-
-IMPORTANT: Return ONLY the JSON array, no other text.`;
+        Format your response as a JSON array with keys: "title", "author", "description", "reason".`;
 
         try {
-            const response = await axios.post(
-                `${GEMINI_API_URL}?key=${GEMINI_API_KEY}`,
-                {
-                    contents: [{
-                        parts: [{ text: prompt }]
-                    }]
-                },
-                {
-                    headers: { 'Content-Type': 'application/json' }
-                }
-            );
+            // 2. Initialize SDK
+            const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
 
-            const generatedText = response.data?.candidates?.[0]?.content?.parts?.[0]?.text || '[]';
+            // 3. Configure model to enforce JSON output
+            // This significantly reduces parsing errors
+            const model = genAI.getGenerativeModel({
+                model: "gemini-2.5-flash",
+                generationConfig: { responseMimeType: "application/json" }
+            });
 
-            // Extract JSON from response (sometimes AI adds markdown formatting)
-            const jsonMatch = generatedText.match(/\[[\s\S]*\]/);
-            if (jsonMatch) {
-                const parsedRecommendations = JSON.parse(jsonMatch[0]);
-                setRecommendations(parsedRecommendations);
-            } else {
-                // Fallback: parse entire response
-                const parsedRecommendations = JSON.parse(generatedText);
-                setRecommendations(parsedRecommendations);
-            }
+            const result = await model.generateContent(prompt);
+            const response = await result.response;
+            const text = response.text();
+
+            // 4. Parse the result
+            // Since we requested JSON mime type, we can usually parse directly,
+            // but we still clean markdown code blocks just in case.
+            const cleanedText = text.replace(/```json|```/g, '').trim();
+            const parsedRecommendations = JSON.parse(cleanedText);
+
+            setRecommendations(parsedRecommendations);
+
         } catch (err) {
             console.error('Gemini API Error:', err);
 
-            // Fallback recommendations
             setRecommendations([{
                 title: 'Error Getting Recommendations',
                 author: 'System',
-                description: 'Failed to fetch recommendations from AI. Please check your API key and try again.',
-                reason: err.response?.data?.error?.message || err.message
+                description: 'Failed to fetch recommendations from AI.',
+                reason: err.message
             }]);
+            message.error("Failed to generate recommendations. Please try again.");
         } finally {
             setLoading(false);
         }

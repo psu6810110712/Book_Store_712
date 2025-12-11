@@ -7,9 +7,10 @@ import AddBookPage from './AddBookPage';
 import EditBookPage from './EditBookPage';
 import CategoryManagementPage from './CategoryManagementPage';
 import BookRecommendationPage from './BookRecommendationPage';
+import { LanguageProvider, useLanguage } from './contexts/LanguageContext';
 import axios from 'axios';
-import { Layout, Menu, theme, Button, Tooltip, Popconfirm, ConfigProvider, Switch } from 'antd';
-import { LogoutOutlined, UserOutlined, ReadOutlined, BulbOutlined, MoonOutlined, SunOutlined, AppstoreOutlined, FolderOutlined, StarOutlined } from '@ant-design/icons';
+import { Layout, Menu, theme, Button, Tooltip, Popconfirm, ConfigProvider, Switch, Dropdown, Space } from 'antd';
+import { LogoutOutlined, UserOutlined, ReadOutlined, MoonOutlined, SunOutlined, AppstoreOutlined, FolderOutlined, StarOutlined, GlobalOutlined, SettingOutlined } from '@ant-design/icons';
 
 const { Header, Content, Footer } = Layout;
 
@@ -20,7 +21,11 @@ function AppLayout() {
     const navigate = useNavigate();
     const [isLoggedIn, setIsLoggedIn] = useState(false);
     const [currentPath, setCurrentPath] = useState('/books');
-    const [isDarkMode, setIsDarkMode] = useState(false);
+    const [isDarkMode, setIsDarkMode] = useState(() => {
+        return localStorage.getItem('dark-mode') === 'true';
+    });
+
+    const { language, toggleLanguage, t } = useLanguage();
 
     useEffect(() => {
         const token = localStorage.getItem('token');
@@ -28,10 +33,16 @@ function AppLayout() {
             axios.defaults.headers.common = { 'Authorization': `bearer ${token}` };
             setIsLoggedIn(true);
         }
+
+        // Apply saved dark mode
+        if (isDarkMode) {
+            document.documentElement.setAttribute('data-theme', 'dark');
+        }
     }, []);
 
     const toggleTheme = (checked) => {
         setIsDarkMode(checked);
+        localStorage.setItem('dark-mode', checked);
         if (checked) {
             document.documentElement.setAttribute('data-theme', 'dark');
         } else {
@@ -52,13 +63,47 @@ function AppLayout() {
     };
 
     const menuItems = [
-        { key: '/books', icon: <ReadOutlined />, label: 'Book Store', onClick: () => { navigate('/books'); setCurrentPath('/books'); } },
-        { key: '/recommendations', icon: <StarOutlined />, label: 'Recommendations', onClick: () => { navigate('/recommendations'); setCurrentPath('/recommendations'); } },
-        { key: '/dashboard', icon: <AppstoreOutlined />, label: 'Dashboard', onClick: () => { navigate('/dashboard'); setCurrentPath('/dashboard'); } },
-        { key: '/categories', icon: <FolderOutlined />, label: 'Categories', onClick: () => { navigate('/categories'); setCurrentPath('/categories'); } },
+        { key: '/books', icon: <ReadOutlined />, label: t('books'), onClick: () => { navigate('/books'); setCurrentPath('/books'); } },
+        { key: '/recommendations', icon: <StarOutlined />, label: t('recommendations'), onClick: () => { navigate('/recommendations'); setCurrentPath('/recommendations'); } },
+        { key: '/dashboard', icon: <AppstoreOutlined />, label: t('dashboard'), onClick: () => { navigate('/dashboard'); setCurrentPath('/dashboard'); } },
+        { key: '/categories', icon: <FolderOutlined />, label: t('categories'), onClick: () => { navigate('/categories'); setCurrentPath('/categories'); } },
     ];
 
-    const contentBg = isDarkMode ? '#141414' : '#ffffff';
+    // Settings dropdown menu
+    const settingsMenuItems = [
+        {
+            key: 'language',
+            icon: <GlobalOutlined />,
+            label: (
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', minWidth: 150 }}>
+                    <span>{t('language')}</span>
+                    <Button
+                        size="small"
+                        type={language === 'en' ? 'primary' : 'default'}
+                        onClick={(e) => { e.stopPropagation(); toggleLanguage(); }}
+                        style={{ marginLeft: 8 }}
+                    >
+                        {language === 'en' ? '🇺🇸 EN' : '🇹🇭 TH'}
+                    </Button>
+                </div>
+            ),
+        },
+        {
+            key: 'theme',
+            icon: isDarkMode ? <MoonOutlined /> : <SunOutlined />,
+            label: (
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', minWidth: 150 }}>
+                    <span>{t('darkMode')}</span>
+                    <Switch
+                        size="small"
+                        checked={isDarkMode}
+                        onChange={toggleTheme}
+                        onClick={(e) => e.stopPropagation()}
+                    />
+                </div>
+            ),
+        },
+    ];
 
     if (!isLoggedIn) {
         return <LoginScreen onLoginSuccess={handleLoginSuccess} />;
@@ -100,27 +145,47 @@ function AppLayout() {
                         />
                     </div>
 
-                    <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
-                        <Switch
-                            checkedChildren={<MoonOutlined />}
-                            unCheckedChildren={<SunOutlined />}
-                            checked={isDarkMode}
-                            onChange={toggleTheme}
-                        />
+                    <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+                        {/* Language indicator */}
+                        <Button
+                            type="text"
+                            size="small"
+                            onClick={toggleLanguage}
+                            style={{
+                                color: isDarkMode ? '#fff' : '#555',
+                                fontSize: '14px'
+                            }}
+                        >
+                            {language === 'en' ? '🇺🇸 EN' : '🇹🇭 TH'}
+                        </Button>
 
+                        {/* Settings Dropdown */}
+                        <Dropdown
+                            menu={{ items: settingsMenuItems }}
+                            placement="bottomRight"
+                            trigger={['click']}
+                        >
+                            <Button
+                                type="text"
+                                shape="circle"
+                                icon={<SettingOutlined style={{ color: isDarkMode ? '#fff' : '#555' }} />}
+                            />
+                        </Dropdown>
+
+                        {/* User & Logout */}
                         <div style={{ display: 'flex', gap: '8px' }}>
                             <Button type="text" shape="circle" icon={<UserOutlined style={{ color: isDarkMode ? '#fff' : '#555' }} />} />
 
                             <Popconfirm
-                                title="Confirm Logout"
-                                description="Are you sure to log out?"
+                                title={t('logout')}
+                                description={t('logoutConfirm')}
                                 onConfirm={handleLogout}
                                 placement="bottomRight"
-                                okText="Yes"
-                                cancelText="No"
+                                okText={t('yes')}
+                                cancelText={t('no')}
                                 okButtonProps={{ danger: true }}
                             >
-                                <Tooltip title="Logout">
+                                <Tooltip title={t('logout')}>
                                     <Button
                                         type="text"
                                         danger
@@ -139,17 +204,17 @@ function AppLayout() {
                     flexDirection: 'column',
                     alignItems: 'center',
                     flex: 1,
-                    background: '#f5f7fa',
+                    background: isDarkMode ? '#141414' : '#f5f7fa',
                     height: 'calc(100vh - 64px)',
                     overflow: 'hidden'
                 }}>
                     <div style={{
-                        background: '#fff',
+                        background: isDarkMode ? '#1f1f1f' : '#fff',
                         padding: '24px',
                         borderRadius: '12px',
                         width: '100%',
                         maxWidth: '1600px',
-                        border: '1px solid #eee',
+                        border: isDarkMode ? '1px solid #303030' : '1px solid #eee',
                         height: '100%',
                         overflowX: 'hidden',
                         overflowY: 'auto',
@@ -177,12 +242,14 @@ function AppLayout() {
 
 function App() {
     return (
-        <BrowserRouter>
-            <Routes>
-                <Route path="/login" element={<LoginScreen onLoginSuccess={() => window.location.href = '/books'} />} />
-                <Route path="/*" element={<AppLayout />} />
-            </Routes>
-        </BrowserRouter>
+        <LanguageProvider>
+            <BrowserRouter>
+                <Routes>
+                    <Route path="/login" element={<LoginScreen onLoginSuccess={() => window.location.href = '/books'} />} />
+                    <Route path="/*" element={<AppLayout />} />
+                </Routes>
+            </BrowserRouter>
+        </LanguageProvider>
     );
 }
 
