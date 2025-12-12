@@ -23,7 +23,7 @@ export default function StockAlertsPage() {
             setBooks(response.data);
         } catch (error) {
             console.error('Error fetching books:', error);
-            message.error('Failed to load books');
+            message.error(t('error'));
         } finally {
             setLoading(false);
         }
@@ -31,7 +31,7 @@ export default function StockAlertsPage() {
 
     const handleRestock = async () => {
         if (!restockModal.book || restockModal.quantity <= 0) {
-            message.warning('Please enter a valid quantity');
+            message.warning(t('enterValidQuantity'));
             return;
         }
 
@@ -41,12 +41,12 @@ export default function StockAlertsPage() {
                 stock: newStock
             });
 
-            message.success(`Restocked ${restockModal.quantity} units successfully!`);
+            message.success(`${restockModal.quantity} ${t('restockSuccess')}`);
             setRestockModal({ visible: false, book: null, quantity: 0 });
             fetchBooks();
         } catch (error) {
             console.error('Error restocking:', error);
-            message.error('Failed to restock');
+            message.error(t('error'));
         }
     };
 
@@ -56,39 +56,39 @@ export default function StockAlertsPage() {
 
     const columns = [
         {
-            title: 'Title',
+            title: t('title'),
             dataIndex: 'title',
             key: 'title',
             width: '30%',
             sorter: (a, b) => a.title.localeCompare(b.title),
         },
         {
-            title: 'Author',
+            title: t('author'),
             dataIndex: 'author',
             key: 'author',
             width: '20%',
         },
         {
-            title: 'Category',
+            title: t('category'),
             dataIndex: 'book_category_name',
             key: 'category',
             width: '15%',
             render: (category) => <Tag color="blue">{category || 'N/A'}</Tag>,
         },
         {
-            title: 'Current Stock',
+            title: t('currentStock'),
             dataIndex: 'stock',
             key: 'stock',
             width: '15%',
             sorter: (a, b) => a.stock - b.stock,
             render: (stock) => (
                 <Tag color={stock === 0 ? 'red' : stock < 5 ? 'orange' : 'gold'}>
-                    {stock} {stock === 0 ? '(OUT OF STOCK)' : stock < 5 ? '(CRITICAL)' : '(LOW)'}
+                    {stock} {stock === 0 ? `(${t('outOfStock')})` : stock < 5 ? `(${t('critical')})` : `(${t('low')})`}
                 </Tag>
             ),
         },
         {
-            title: 'Actions',
+            title: t('actions'),
             key: 'actions',
             width: '20%',
             render: (_, record) => (
@@ -97,7 +97,7 @@ export default function StockAlertsPage() {
                     icon={<EditOutlined />}
                     onClick={() => setRestockModal({ visible: true, book: record, quantity: 10 })}
                 >
-                    Restock
+                    {t('restock')}
                 </Button>
             ),
         },
@@ -109,12 +109,12 @@ export default function StockAlertsPage() {
                 title={
                     <Space>
                         <WarningOutlined style={{ color: '#ff4d4f' }} />
-                        <span>Stock Alerts - Low Inventory</span>
+                        <span>{t('stockAlerts')} - {t('lowInventory')}</span>
                     </Space>
                 }
                 extra={
                     <Button icon={<ReloadOutlined />} onClick={fetchBooks} loading={loading}>
-                        Refresh
+                        {t('refresh')}
                     </Button>
                 }
             >
@@ -122,23 +122,23 @@ export default function StockAlertsPage() {
                 <Space direction="vertical" style={{ width: '100%', marginBottom: 16 }} size="middle">
                     {criticalStockBooks.length > 0 && (
                         <Alert
-                            message={`🚨 Critical: ${criticalStockBooks.length} items OUT OF STOCK`}
-                            description="Immediate action required!"
+                            message={`🚨 ${t('criticalAlert')}: ${criticalStockBooks.length} ${t('outOfStock')}`}
+                            description={t('immediateAction')}
                             type="error"
                             showIcon
                         />
                     )}
                     {lowStockBooks.length > 0 && (
                         <Alert
-                            message={`⚠️ Warning: ${lowStockBooks.length} items with low stock (< ${STOCK_THRESHOLD} units)`}
-                            description="Consider restocking soon."
+                            message={`⚠️ ${t('warning')}: ${lowStockBooks.length} ${t('lowInventory')} (< ${STOCK_THRESHOLD})`}
+                            description={t('considerRestocking')}
                             type="warning"
                             showIcon
                         />
                     )}
                     {lowStockBooks.length === 0 && (
                         <Alert
-                            message="✅ All stock levels are healthy!"
+                            message={`✅ ${t('allHealthy')}`}
                             type="success"
                             showIcon
                             icon={<CheckCircleOutlined />}
@@ -163,15 +163,16 @@ export default function StockAlertsPage() {
 
             {/* Restock Modal */}
             <Modal
-                title={`Restock: ${restockModal.book?.title}`}
+                title={`${t('restock')}: ${restockModal.book?.title}`}
                 open={restockModal.visible}
                 onOk={handleRestock}
                 onCancel={() => setRestockModal({ visible: false, book: null, quantity: 0 })}
-                okText="Confirm Restock"
+                okText={t('confirmRestock')}
+                cancelText={t('cancel')}
             >
                 <div style={{ marginBottom: 16 }}>
-                    <p><strong>Current Stock:</strong> {restockModal.book?.stock} units</p>
-                    <p><strong>Add Quantity:</strong></p>
+                    <p><strong>{t('currentStock')}:</strong> {restockModal.book?.stock} {t('items')}</p>
+                    <p><strong>{t('addQuantity')}:</strong></p>
                     <InputNumber
                         min={1}
                         value={restockModal.quantity}
@@ -179,7 +180,7 @@ export default function StockAlertsPage() {
                         style={{ width: '100%' }}
                     />
                     <p style={{ marginTop: 8 }}>
-                        <strong>New Stock:</strong> {(restockModal.book?.stock || 0) + (restockModal.quantity || 0)} units
+                        <strong>{t('newStock')}:</strong> {(restockModal.book?.stock || 0) + (restockModal.quantity || 0)} {t('items')}
                     </p>
                 </div>
             </Modal>

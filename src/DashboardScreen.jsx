@@ -13,6 +13,7 @@ import { useState, useEffect } from 'react';
 import { Card, Row, Col, Statistic, Spin, Table, Tag, Button, DatePicker, Select, Space } from 'antd';
 import { BookOutlined, DollarOutlined, AppstoreOutlined, WarningOutlined, FileTextOutlined, TrophyOutlined, BarChartOutlined } from '@ant-design/icons';
 import axios from 'axios';
+import { useLanguage } from './contexts/LanguageContext';
 
 const { RangePicker } = DatePicker;
 
@@ -39,6 +40,7 @@ export default function DashboardScreen() {
     lowStockItems: 0,
   });
   const [loading, setLoading] = useState(true);
+  const { t } = useLanguage();
 
   useEffect(() => {
     fetchData();
@@ -65,7 +67,7 @@ export default function DashboardScreen() {
         labels: booksData.map(book => book.title.length > 20 ? book.title.substring(0, 20) + '...' : book.title),
         datasets: [
           {
-            label: 'Stock Quantity',
+            label: t('stockQty'),
             data: booksData.map(book => book.stock),
             backgroundColor: 'rgba(53, 162, 235, 0.6)',
             borderColor: 'rgba(53, 162, 235, 1)',
@@ -108,7 +110,7 @@ export default function DashboardScreen() {
         labels: categories,
         datasets: [
           {
-            label: 'Number of Books',
+            label: t('numBooks'),
             data: categoryCounts,
             backgroundColor: categoryColors.slice(0, categories.length),
             borderColor: categoryColors.slice(0, categories.length).map(c => c.replace('0.8', '1')),
@@ -132,7 +134,7 @@ export default function DashboardScreen() {
 
   const bestSellersColumns = [
     {
-      title: 'Rank',
+      title: t('rank'),
       key: 'rank',
       width: 80,
       render: (_, __, index) => (
@@ -142,29 +144,29 @@ export default function DashboardScreen() {
       ),
     },
     {
-      title: 'Title',
+      title: t('title'),
       dataIndex: 'title',
       key: 'title',
     },
     {
-      title: 'Author',
+      title: t('author'),
       dataIndex: 'author',
       key: 'author',
     },
     {
-      title: 'Likes',
+      title: t('liked'),
       dataIndex: 'likes',
       key: 'likes',
       sorter: (a, b) => (b.likes || 0) - (a.likes || 0),
       render: (likes) => <Tag color="red">❤️ {likes || 0}</Tag>,
     },
     {
-      title: 'Stock',
+      title: t('stock'),
       dataIndex: 'stock',
       key: 'stock',
     },
     {
-      title: 'Value',
+      title: t('value'),
       key: 'value',
       render: (_, record) => `$${(record.price * record.stock).toFixed(2)}`,
     },
@@ -189,7 +191,7 @@ export default function DashboardScreen() {
   if (loading) {
     return (
       <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '400px' }}>
-        <Spin size="large" tip="Loading dashboard..." />
+        <Spin size="large" tip={t('loading')} />
       </div>
     );
   }
@@ -199,15 +201,15 @@ export default function DashboardScreen() {
       {/* Header with Actions */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
         <h2 style={{ margin: 0 }}>
-          <BarChartOutlined /> Dashboard & Reports
+          <BarChartOutlined /> {t('dashboardTitle')}
         </h2>
         <Space>
           <RangePicker />
-          <Select defaultValue="all" style={{ width: 120 }}>
-            <Select.Option value="all">All Categories</Select.Option>
+          <Select defaultValue="all" style={{ width: 150 }}>
+            <Select.Option value="all">{t('allCategories')}</Select.Option>
           </Select>
           <Button type="primary" icon={<FileTextOutlined />}>
-            Export PDF
+            {t('exportPDF')}
           </Button>
         </Space>
       </div>
@@ -217,7 +219,7 @@ export default function DashboardScreen() {
         <Col xs={24} sm={12} lg={6}>
           <Card>
             <Statistic
-              title="Total Books"
+              title={t('totalBooks')}
               value={statistics.totalBooks}
               prefix={<BookOutlined />}
               valueStyle={{ color: '#3f8600' }}
@@ -227,7 +229,7 @@ export default function DashboardScreen() {
         <Col xs={24} sm={12} lg={6}>
           <Card>
             <Statistic
-              title="Inventory Value"
+              title={t('inventoryValue')}
               value={statistics.totalValue}
               prefix={<DollarOutlined />}
               precision={2}
@@ -239,7 +241,7 @@ export default function DashboardScreen() {
         <Col xs={24} sm={12} lg={6}>
           <Card>
             <Statistic
-              title="Total Stock"
+              title={t('totalStock')}
               value={statistics.totalStock}
               prefix={<AppstoreOutlined />}
               valueStyle={{ color: '#cf1322' }}
@@ -249,7 +251,7 @@ export default function DashboardScreen() {
         <Col xs={24} sm={12} lg={6}>
           <Card>
             <Statistic
-              title="Low Stock Items"
+              title={t('lowStockItems')}
               value={statistics.lowStockItems}
               prefix={<WarningOutlined />}
               valueStyle={{ color: statistics.lowStockItems > 0 ? '#cf1322' : '#3f8600' }}
@@ -261,13 +263,13 @@ export default function DashboardScreen() {
       {/* Charts */}
       <Row gutter={[16, 16]} style={{ marginBottom: 16 }}>
         <Col xs={24} lg={12}>
-          <Card title="📦 Stock Levels by Book" bordered={false}>
+          <Card title={`📦 ${t('stockLevels')}`} bordered={false}>
             {chartData && <Bar options={chartOptions} data={chartData} />}
           </Card>
         </Col>
 
         <Col xs={24} lg={12}>
-          <Card title="📚 Books by Category" bordered={false}>
+          <Card title={`📚 ${t('booksByCategory')}`} bordered={false}>
             {categoryData && <Pie options={chartOptions} data={categoryData} />}
           </Card>
         </Col>
@@ -280,7 +282,7 @@ export default function DashboardScreen() {
             title={
               <Space>
                 <TrophyOutlined style={{ color: '#faad14' }} />
-                <span>Top 10 Best Sellers (by Likes)</span>
+                <span>{t('topBestSellers')}</span>
               </Space>
             }
             bordered={false}

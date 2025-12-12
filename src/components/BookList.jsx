@@ -1,10 +1,8 @@
 import { Table, Button, Space, Popconfirm, Tag, Image } from 'antd';
-import { useNavigate } from 'react-router-dom';
 import { BulbOutlined } from '@ant-design/icons';
 import { useLanguage } from '../contexts/LanguageContext';
 
 export default function BookList(props) {
-  const navigate = useNavigate();
   const { t } = useLanguage();
 
   const columns = [
@@ -100,7 +98,7 @@ export default function BookList(props) {
       render: (text, record) => (
         <Space size="small" wrap>
           <Button type="primary" onClick={() => props.onLiked(record)} size="small">{t('like')}</Button>
-          <Button onClick={() => navigate(`/books/edit/${record.id}`)} size="small">{t('edit')}</Button>
+          <Button onClick={() => props.onEdit && props.onEdit(record)} size="small">{t('edit')}</Button>
           <Button
             icon={<BulbOutlined />}
             onClick={() => props.onAskAI && props.onAskAI(record)}

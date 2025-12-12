@@ -55,12 +55,12 @@ Respond in JSON format (in ${promptLang}, keep it concise):
         } catch (err) {
             console.error('Gemini API Error:', err);
 
-            let errorMessage = language === 'th' ? 'เกิดข้อผิดพลาด' : 'An error occurred';
+            let errorMessage = t('error');
             if (err.message.includes('429')) {
-                errorMessage = language === 'th' ? '⏳ คำขอมากเกินไป กรุณารอสักครู่' : '⏳ Too many requests. Please wait.';
+                errorMessage = t('tooManyRequests');
             }
             if (err.message.includes('404')) {
-                errorMessage = language === 'th' ? '❌ Model ไม่พร้อมใช้งาน' : '❌ Model not available';
+                errorMessage = t('modelNotAvailable');
             }
 
             message.error(errorMessage);
@@ -126,7 +126,7 @@ Respond in JSON format (in ${promptLang}, keep it concise):
 
                             {/* Genre & Rating */}
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                <Tag color="blue" icon={<BookOutlined />}>{bookInfo.genre || 'General'}</Tag>
+                                <Tag color="blue" icon={<BookOutlined />}>{bookInfo.genre || t('generalGenre')}</Tag>
                                 <span style={{ fontSize: 16 }}>{renderStars(bookInfo.rating)}</span>
                             </div>
 
@@ -134,7 +134,7 @@ Respond in JSON format (in ${promptLang}, keep it concise):
                             <Card size="small" style={{ background: '#f6f8fa' }}>
                                 <Text strong><BulbOutlined /> {t('summary')}</Text>
                                 <Paragraph style={{ margin: '8px 0 0 0', color: '#555' }}>
-                                    {bookInfo.summary || 'No data available'}
+                                    {bookInfo.summary || t('noData')}
                                 </Paragraph>
                             </Card>
 
@@ -154,14 +154,14 @@ Respond in JSON format (in ${promptLang}, keep it concise):
                             <Card size="small" style={{ background: '#fff7e6', borderLeft: '3px solid #fa8c16' }}>
                                 <Text strong><HeartOutlined style={{ color: '#fa8c16' }} /> {t('recommendFor')}</Text>
                                 <Paragraph style={{ margin: '8px 0 0 0', color: '#555' }}>
-                                    {bookInfo.recommend || 'Anyone who loves reading'}
+                                    {bookInfo.recommend || t('anyoneWhoLovesReading')}
                                 </Paragraph>
                             </Card>
                         </Space>
                     ) : (
                         <div style={{ textAlign: 'center', padding: 40, color: '#888' }}>
                             <BulbOutlined style={{ fontSize: 48, marginBottom: 16 }} />
-                            <p>{language === 'th' ? 'คลิก "วิเคราะห์ใหม่" เพื่อดูข้อมูล' : 'Click "Regenerate" to get insights'}</p>
+                            <p>{t('clickToRegenerate')}</p>
                         </div>
                     )}
                 </>

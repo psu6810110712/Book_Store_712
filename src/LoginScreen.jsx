@@ -1,28 +1,26 @@
 import { useState } from 'react';
-import { Button, Form, Input, Alert, Checkbox } from 'antd'; // 1. Import Checkbox
+import { Button, Form, Input, Alert, Checkbox } from 'antd';
 import axios from 'axios'
+import { useLanguage } from './contexts/LanguageContext'; // Import useLanguage
+
 const URL_AUTH = "/api/auth/login"
 
 export default function LoginScreen(props) {
     const [isLoading, setIsLoading] = useState(false)
     const [errMsg, setErrMsg] = useState(null)
+    const { t } = useLanguage(); // Use hook
 
     const handleLogin = async (formData) => {
         try {
             setIsLoading(true)
             setErrMsg(null)
 
-            // 1. แยก remember ออกมาจากข้อมูลที่จะส่งให้ Server
-            const { remember, ...loginData } = formData; 
-            // ตอนนี้ loginData จะเหลือแค่ { username, password }
+            const { remember, ...loginData } = formData;
+            const response = await axios.post(URL_AUTH, loginData)
 
-            // 2. ส่งเฉพาะ loginData ไปที่ Server
-            const response = await axios.post(URL_AUTH, loginData) 
-            
             const token = response.data.access_token
             axios.defaults.headers.common = { 'Authorization': `bearer ${token}` }
-            
-            // 3. ใช้ค่า remember ที่แยกออกมา ตัดสินใจว่าจะเก็บ Token ไหม
+
             if (remember) {
                 localStorage.setItem('token', token);
             }
@@ -30,15 +28,13 @@ export default function LoginScreen(props) {
             props.onLoginSuccess();
         } catch (err) {
             console.log(err)
-            // เช็คว่า Error มาจาก Server หรือไม่
             if (err.response && err.response.data && err.response.data.message) {
-                 // ถ้าเป็น Array (เช่น validation error หลายตัว) ให้ดึงตัวแรกมาโชว์
-                 const msg = Array.isArray(err.response.data.message) 
-                    ? err.response.data.message[0] 
+                const msg = Array.isArray(err.response.data.message)
+                    ? err.response.data.message[0]
                     : err.response.data.message;
-                 setErrMsg(msg);
+                setErrMsg(msg);
             } else {
-                 setErrMsg(err.message)
+                setErrMsg(err.message)
             }
         } finally { setIsLoading(false) }
     }
@@ -47,40 +43,40 @@ export default function LoginScreen(props) {
             onFinish={handleLogin}
             autoComplete="off"
             style={{ width: 350, margin: '50px auto', padding: '20px', border: '1px solid #d9d9d9', borderRadius: '4px' }}>
-            
-            <h3>Book Store Login</h3>
-            
+
+            <h3 style={{ textAlign: 'center', marginBottom: '24px' }}>{t('loginTitle')}</h3>
+
             {errMsg &&
                 <Form.Item>
                     <Alert message={errMsg} type="error" showIcon />
                 </Form.Item>
             }
-            
+
             <Form.Item
-                label="Username"
+                label={t('username')}
                 name="username"
-                rules={[{ required: true, message: 'Please input your username!' }]}>
-                <Input />
+                rules={[{ required: true, message: t('enterUsername') }]}>
+                <Input placeholder={t('username')} />
             </Form.Item>
 
             <Form.Item
-                label="Password"
+                label={t('password')}
                 name="password"
-                rules={[{ required: true, message: 'Please input your password!' }]}>
-                <Input.Password />
+                rules={[{ required: true, message: t('enterPassword') }]}>
+                <Input.Password placeholder={t('password')} />
             </Form.Item>
 
-            {/* 3. เพิ่ม Checkbox Remember Me */}
             <Form.Item name="remember" valuePropName="checked">
-                <Checkbox>Remember me</Checkbox>
+                <Checkbox>{t('rememberMe')}</Checkbox>
             </Form.Item>
-            
-            <Form.Item wrapperCol={{ offset: 6, span: 16 }}>
+
+            <Form.Item wrapperCol={{ offset: 0, span: 24 }}>
                 <Button
                     type="primary"
-                    htmlType="submit" 
+                    htmlType="submit"
+                    block
                     loading={isLoading}>
-                    Login
+                    {t('loginButton')}
                 </Button>
             </Form.Item>
         </Form>

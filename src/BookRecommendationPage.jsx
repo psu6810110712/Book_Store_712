@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { Card, Form, Input, Select, Button, List, Tag, Divider, Spin, Row, Col, Space, message } from 'antd';
 import { BulbOutlined, BookOutlined, StarOutlined, HeartOutlined } from '@ant-design/icons';
-// 1. Remove Axios, import Google Generative AI
 import { GoogleGenerativeAI } from "@google/generative-ai";
+import { useLanguage } from './contexts/LanguageContext';
 
 const { TextArea } = Input;
 const { Option } = Select;
@@ -13,6 +13,7 @@ export default function BookRecommendationPage() {
     const [form] = Form.useForm();
     const [loading, setLoading] = useState(false);
     const [recommendations, setRecommendations] = useState([]);
+    const { t } = useLanguage();
 
     const genres = [
         'Fiction', 'Non-Fiction', 'Science Fiction', 'Fantasy', 'Mystery', 'Thriller',
@@ -36,12 +37,19 @@ export default function BookRecommendationPage() {
 
         const { preferences, genres: selectedGenres, mood, previousBooks } = values;
 
+        // Prompt is in English to ensure clear AI understanding, output is requested in JSON.
+        // If we want Thai output, we should prompt "Answer in Thai".
+        // Let's check language.
+        const langPrompt = localStorage.getItem('app-language') === 'th' ? "Answer in Thai language." : "Answer in English language.";
+
         const prompt = `As a book recommendation expert, suggest 5 books based on the following preferences:
 
         **User Preferences**: ${preferences || 'No specific preferences'}
         **Favorite Genres**: ${selectedGenres?.join(', ') || 'Any genre'}
         **Current Mood**: ${mood || 'Open to anything'}
         **Previously Enjoyed Books**: ${previousBooks || 'None mentioned'}
+
+        ${langPrompt}
 
         For each book, provide:
         1. Title
@@ -52,11 +60,8 @@ export default function BookRecommendationPage() {
         Format your response as a JSON array with keys: "title", "author", "description", "reason".`;
 
         try {
-            // 2. Initialize SDK
             const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
 
-            // 3. Configure model to enforce JSON output
-            // This significantly reduces parsing errors
             const model = genAI.getGenerativeModel({
                 model: "gemini-2.5-flash",
                 generationConfig: { responseMimeType: "application/json" }
@@ -66,9 +71,6 @@ export default function BookRecommendationPage() {
             const response = await result.response;
             const text = response.text();
 
-            // 4. Parse the result
-            // Since we requested JSON mime type, we can usually parse directly,
-            // but we still clean markdown code blocks just in case.
             const cleanedText = text.replace(/```json|```/g, '').trim();
             const parsedRecommendations = JSON.parse(cleanedText);
 
@@ -78,12 +80,12 @@ export default function BookRecommendationPage() {
             console.error('Gemini API Error:', err);
 
             setRecommendations([{
-                title: 'Error Getting Recommendations',
+                title: t('error'),
                 author: 'System',
                 description: 'Failed to fetch recommendations from AI.',
                 reason: err.message
             }]);
-            message.error("Failed to generate recommendations. Please try again.");
+            message.error(t('error'));
         } finally {
             setLoading(false);
         }
@@ -95,13 +97,13 @@ export default function BookRecommendationPage() {
                 title={
                     <span>
                         <BulbOutlined style={{ marginRight: '8px', color: '#1890ff' }} />
-                        AI-Powered Book Recommendations
+                        {t('aiTitle')}
                     </span>
                 }
                 bordered={false}
             >
                 <p style={{ color: '#666', marginBottom: '24px' }}>
-                    Tell us what you like, and let our AI recommend the perfect books for you! 📚
+                    {t('aiDescription')}
                 </p>
 
                 <Form
@@ -113,12 +115,11 @@ export default function BookRecommendationPage() {
                         <Col xs={24} md={12}>
                             <Form.Item
                                 name="preferences"
-                                label="What kind of books do you enjoy?"
-                                tooltip="E.g., 'I love fast-paced thrillers with unexpected twists'"
+                                label={t('preferences')}
                             >
                                 <TextArea
                                     rows={3}
-                                    placeholder="Describe your reading preferences..."
+                                    placeholder={t('preferences')}
                                 />
                             </Form.Item>
                         </Col>
@@ -126,12 +127,11 @@ export default function BookRecommendationPage() {
                         <Col xs={24} md={12}>
                             <Form.Item
                                 name="previousBooks"
-                                label="Books you've loved recently"
-                                tooltip="This helps us understand your taste better"
+                                label={t('previousBooks')}
                             >
                                 <TextArea
                                     rows={3}
-                                    placeholder="E.g., '1984 by George Orwell, The Alchemist by Paulo Coelho'"
+                                    placeholder={t('previousBooks')}
                                 />
                             </Form.Item>
                         </Col>
@@ -141,11 +141,11 @@ export default function BookRecommendationPage() {
                         <Col xs={24} md={12}>
                             <Form.Item
                                 name="genres"
-                                label="Favorite Genres"
+                                label={t('favoriteGenres')}
                             >
                                 <Select
                                     mode="multiple"
-                                    placeholder="Select genres you enjoy"
+                                    placeholder={t('favoriteGenres')}
                                     maxTagCount={3}
                                 >
                                     {genres.map(genre => (
@@ -158,16 +158,16 @@ export default function BookRecommendationPage() {
                         <Col xs={24} md={12}>
                             <Form.Item
                                 name="mood"
-                                label="Current Reading Mood"
+                                label={t('currentMood')}
                             >
-                                <Select placeholder="How do you feel today?">
-                                    <Option value="adventurous">Adventurous 🗺️</Option>
-                                    <Option value="thoughtful">Thoughtful 🤔</Option>
-                                    <Option value="escapist">Need an Escape 🌟</Option>
-                                    <Option value="motivated">Looking for Motivation 💪</Option>
-                                    <Option value="relaxed">Want to Relax 😌</Option>
-                                    <Option value="curious">Curious to Learn 📖</Option>
-                                    <Option value="emotional">In the Mood for Feelings ❤️</Option>
+                                <Select placeholder={t('currentMood')}>
+                                    <Option value="adventurous">{t('moodAdventurous')}</Option>
+                                    <Option value="thoughtful">{t('moodThoughtful')}</Option>
+                                    <Option value="escapist">{t('moodEscapist')}</Option>
+                                    <Option value="motivated">{t('moodMotivated')}</Option>
+                                    <Option value="relaxed">{t('moodRelaxed')}</Option>
+                                    <Option value="curious">{t('moodCurious')}</Option>
+                                    <Option value="emotional">{t('moodEmotional')}</Option>
                                 </Select>
                             </Form.Item>
                         </Col>
@@ -181,7 +181,7 @@ export default function BookRecommendationPage() {
                             size="large"
                             loading={loading}
                         >
-                            Get AI Recommendations
+                            {t('getRecommendations')}
                         </Button>
                     </Form.Item>
                 </Form>
@@ -190,7 +190,7 @@ export default function BookRecommendationPage() {
                     <div style={{ textAlign: 'center', padding: '40px' }}>
                         <Spin size="large" />
                         <p style={{ marginTop: '16px', color: '#888' }}>
-                            🤖 AI is analyzing your preferences...
+                            🤖 {t('analyzingPreferences')}
                         </p>
                     </div>
                 )}
@@ -198,7 +198,7 @@ export default function BookRecommendationPage() {
                 {!loading && recommendations.length > 0 && (
                     <>
                         <Divider orientation="left">
-                            <BookOutlined /> Your Personalized Recommendations
+                            <BookOutlined /> {t('yourRecommendations')}
                         </Divider>
 
                         <List
@@ -226,13 +226,13 @@ export default function BookRecommendationPage() {
                                                 <span style={{ fontSize: '18px', fontWeight: 600 }}>
                                                     {book.title}
                                                 </span>
-                                                {index === 0 && <Tag color="gold">Top Pick!</Tag>}
+                                                {index === 0 && <Tag color="gold">{t('topPick')}</Tag>}
                                             </Space>
                                         }
                                         description={
                                             <div>
                                                 <p style={{ fontSize: '14px', color: '#666', marginBottom: '8px' }}>
-                                                    by <strong>{book.author}</strong>
+                                                    {t('author')}: <strong>{book.author}</strong>
                                                 </p>
                                             </div>
                                         }
@@ -240,7 +240,7 @@ export default function BookRecommendationPage() {
 
                                     <div style={{ marginTop: '12px' }}>
                                         <p style={{ marginBottom: '8px' }}>
-                                            <strong>About:</strong> {book.description}
+                                            <strong>{t('about')}:</strong> {book.description}
                                         </p>
                                         <p style={{
                                             padding: '12px',
@@ -249,7 +249,7 @@ export default function BookRecommendationPage() {
                                             borderLeft: '4px solid #1890ff'
                                         }}>
                                             <HeartOutlined style={{ marginRight: '8px', color: '#ff4d4f' }} />
-                                            <strong>Why you'll love it:</strong> {book.reason}
+                                            <strong>{t('whyLoveIt')}:</strong> {book.reason}
                                         </p>
                                     </div>
                                 </List.Item>
@@ -264,7 +264,7 @@ export default function BookRecommendationPage() {
                             borderRadius: '8px'
                         }}>
                             <p style={{ margin: 0, color: '#666' }}>
-                                💡 Want different suggestions? Adjust your preferences and try again!
+                                {t('suggestionHint')}
                             </p>
                         </div>
                     </>

@@ -3,6 +3,7 @@ import { Button, Form, Input, InputNumber, Select, Card, Row, Col, message, Spin
 import { ArrowLeftOutlined } from '@ant-design/icons';
 import { useState, useEffect } from 'react';
 import axios from 'axios';
+import { useLanguage } from './contexts/LanguageContext';
 
 const URL_BOOK = "/api/book";
 const URL_CATEGORY = "/api/book-category";
@@ -14,6 +15,7 @@ export default function EditBookPage() {
     const [categories, setCategories] = useState([]);
     const [loading, setLoading] = useState(false);
     const [fetchingBook, setFetchingBook] = useState(true);
+    const { t } = useLanguage();
 
     useEffect(() => {
         fetchCategories();
@@ -26,7 +28,7 @@ export default function EditBookPage() {
             setCategories(response.data.map(cat => ({ label: cat.name, value: cat.id })));
         } catch (err) {
             console.error(err);
-            message.error('Failed to load categories');
+            message.error(t('error'));
         }
     };
 
@@ -48,7 +50,7 @@ export default function EditBookPage() {
             });
         } catch (err) {
             console.error(err);
-            message.error('Failed to load book details');
+            message.error(t('error'));
             navigate('/books');
         } finally {
             setFetchingBook(false);
@@ -59,11 +61,11 @@ export default function EditBookPage() {
         try {
             setLoading(true);
             await axios.patch(`${URL_BOOK}/${id}`, values);
-            message.success('Book updated successfully!');
+            message.success(t('success'));
             navigate('/books');
         } catch (err) {
             console.error(err);
-            message.error('Failed to update book');
+            message.error(t('error'));
         } finally {
             setLoading(false);
         }
@@ -72,7 +74,7 @@ export default function EditBookPage() {
     if (fetchingBook) {
         return (
             <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '400px' }}>
-                <Spin size="large" tip="Loading book details..." />
+                <Spin size="large" tip={t('loading')} />
             </div>
         );
     }
@@ -84,65 +86,65 @@ export default function EditBookPage() {
                 onClick={() => navigate('/books')}
                 style={{ marginBottom: '16px' }}
             >
-                Back to Books
+                {t('backToBooks')}
             </Button>
 
-            <Card title="✏️ Edit Book" bordered={false}>
+            <Card title={`✏️ ${t('editBook')}`} bordered={false}>
                 <Form form={form} layout="vertical" onFinish={onFinish}>
 
                     <Row gutter={16}>
                         <Col span={12}>
-                            <Form.Item name="title" label="Title" rules={[{ required: true, message: 'Please enter title' }]}>
-                                <Input placeholder="Enter title" />
+                            <Form.Item name="title" label={t('title')} rules={[{ required: true, message: `${t('title')} is required` }]}>
+                                <Input placeholder={t('title')} />
                             </Form.Item>
                         </Col>
                         <Col span={12}>
-                            <Form.Item name="author" label="Author" rules={[{ required: true, message: 'Please enter author' }]}>
-                                <Input placeholder="Enter author" />
+                            <Form.Item name="author" label={t('author')} rules={[{ required: true, message: `${t('author')} is required` }]}>
+                                <Input placeholder={t('author')} />
                             </Form.Item>
                         </Col>
                     </Row>
 
-                    <Form.Item name="description" label="Description">
-                        <Input.TextArea rows={3} placeholder="Brief description..." />
+                    <Form.Item name="description" label={t('description')}>
+                        <Input.TextArea rows={3} placeholder={t('description')} />
                     </Form.Item>
 
                     <Row gutter={16}>
                         <Col span={8}>
-                            <Form.Item name="price" label="Price" rules={[{ required: true, message: 'Please enter price' }]}>
+                            <Form.Item name="price" label={t('price')} rules={[{ required: true, message: `${t('price')} is required` }]}>
                                 <InputNumber style={{ width: '100%' }} min={0} prefix="$" />
                             </Form.Item>
                         </Col>
                         <Col span={8}>
-                            <Form.Item name="stock" label="Stock" rules={[{ required: true, message: 'Please enter stock' }]}>
+                            <Form.Item name="stock" label={t('stock')} rules={[{ required: true, message: `${t('stock')} is required` }]}>
                                 <InputNumber style={{ width: '100%' }} min={0} />
                             </Form.Item>
                         </Col>
                         <Col span={8}>
-                            <Form.Item name="categoryId" label="Category" rules={[{ required: true, message: 'Please select category' }]}>
+                            <Form.Item name="categoryId" label={t('category')} rules={[{ required: true, message: `${t('category')} is required` }]}>
                                 <Select
                                     allowClear
                                     options={categories}
-                                    placeholder="Select category"
+                                    placeholder={t('category')}
                                 />
                             </Form.Item>
                         </Col>
                     </Row>
 
-                    <Form.Item name="isbn" label="ISBN">
-                        <Input placeholder="Enter ISBN (optional)" />
+                    <Form.Item name="isbn" label={t('isbn')}>
+                        <Input placeholder={t('isbn')} />
                     </Form.Item>
 
-                    <Form.Item name="coverUrl" label="Cover Image URL">
-                        <Input placeholder="e.g. https://example.com/image.jpg" />
+                    <Form.Item name="coverUrl" label={`${t('cover')} URL`}>
+                        <Input placeholder="URL" />
                     </Form.Item>
 
                     <Form.Item style={{ textAlign: 'right', marginTop: '24px' }}>
                         <Button onClick={() => navigate('/books')} style={{ marginRight: '8px' }}>
-                            Cancel
+                            {t('cancel')}
                         </Button>
                         <Button type="primary" htmlType="submit" loading={loading}>
-                            Save Changes
+                            {t('save')}
                         </Button>
                     </Form.Item>
 

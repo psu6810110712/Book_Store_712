@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Card, Table, Button, Modal, Form, Input, message, Space, Popconfirm } from 'antd';
 import { PlusOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons';
 import axios from 'axios';
+import { useLanguage } from './contexts/LanguageContext';
 
 const URL_CATEGORY = "/api/book-category";
 
@@ -11,6 +12,7 @@ export default function CategoryManagementPage() {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingCategory, setEditingCategory] = useState(null);
     const [form] = Form.useForm();
+    const { t } = useLanguage();
 
     useEffect(() => {
         fetchCategories();
@@ -23,7 +25,7 @@ export default function CategoryManagementPage() {
             setCategories(response.data);
         } catch (err) {
             console.error(err);
-            message.error('Failed to load categories');
+            message.error(t('error'));
         } finally {
             setLoading(false);
         }
@@ -44,11 +46,11 @@ export default function CategoryManagementPage() {
     const handleDelete = async (id) => {
         try {
             await axios.delete(`${URL_CATEGORY}/${id}`);
-            message.success('Category deleted successfully');
+            message.success(t('success'));
             fetchCategories();
         } catch (err) {
             console.error(err);
-            message.error('Failed to delete category. It may be in use.');
+            message.error(t('categoryInUse'));
         }
     };
 
@@ -57,18 +59,18 @@ export default function CategoryManagementPage() {
             if (editingCategory) {
                 // Update
                 await axios.patch(`${URL_CATEGORY}/${editingCategory.id}`, values);
-                message.success('Category updated successfully');
+                message.success(t('success'));
             } else {
                 // Create
                 await axios.post(URL_CATEGORY, values);
-                message.success('Category created successfully');
+                message.success(t('success'));
             }
             setIsModalOpen(false);
             form.resetFields();
             fetchCategories();
         } catch (err) {
             console.error(err);
-            message.error(`Failed to ${editingCategory ? 'update' : 'create'} category`);
+            message.error(t('error'));
         }
     };
 
@@ -80,20 +82,20 @@ export default function CategoryManagementPage() {
             width: 80,
         },
         {
-            title: 'Category Name',
+            title: t('categoryName'),
             dataIndex: 'name',
             key: 'name',
         },
         {
-            title: 'Created At',
+            title: t('createdAt'),
             dataIndex: 'createdAt',
             key: 'createdAt',
             render: (date) => new Date(date).toLocaleDateString(),
         },
         {
-            title: 'Actions',
+            title: t('actions'),
             key: 'actions',
-            width: 150,
+            width: 200,
             render: (_, record) => (
                 <Space>
                     <Button
@@ -101,14 +103,14 @@ export default function CategoryManagementPage() {
                         onClick={() => handleEdit(record)}
                         size="small"
                     >
-                        Edit
+                        {t('edit')}
                     </Button>
                     <Popconfirm
-                        title="Delete category?"
-                        description="This will affect books in this category."
+                        title={t('deleteCategory')}
+                        description={t('categoryInUse')}
                         onConfirm={() => handleDelete(record.id)}
-                        okText="Yes"
-                        cancelText="No"
+                        okText={t('yes')}
+                        cancelText={t('no')}
                         okButtonProps={{ danger: true }}
                     >
                         <Button
@@ -116,7 +118,7 @@ export default function CategoryManagementPage() {
                             danger
                             size="small"
                         >
-                            Delete
+                            {t('delete')}
                         </Button>
                     </Popconfirm>
                 </Space>
@@ -127,14 +129,14 @@ export default function CategoryManagementPage() {
     return (
         <div style={{ padding: '24px' }}>
             <Card
-                title="📂 Category Management"
+                title={`📂 ${t('categoryManagement')}`}
                 extra={
                     <Button
                         type="primary"
                         icon={<PlusOutlined />}
                         onClick={handleAdd}
                     >
-                        Add Category
+                        {t('addCategory')}
                     </Button>
                 }
             >
@@ -148,7 +150,7 @@ export default function CategoryManagementPage() {
             </Card>
 
             <Modal
-                title={editingCategory ? "Edit Category" : "Add New Category"}
+                title={editingCategory ? t('editCategoryTitle') : t('addCategoryTitle')}
                 open={isModalOpen}
                 onCancel={() => {
                     setIsModalOpen(false);
@@ -163,21 +165,21 @@ export default function CategoryManagementPage() {
                 >
                     <Form.Item
                         name="name"
-                        label="Category Name"
+                        label={t('categoryName')}
                         rules={[
-                            { required: true, message: 'Please enter category name' },
+                            { required: true, message: t('enterUsername') }, // Reusing 'Please enter...' pattern or just error
                             { min: 2, message: 'Name must be at least 2 characters' }
                         ]}
                     >
-                        <Input placeholder="Enter category name" />
+                        <Input placeholder={t('categoryName')} />
                     </Form.Item>
 
                     <Form.Item style={{ textAlign: 'right', marginBottom: 0 }}>
                         <Button onClick={() => setIsModalOpen(false)} style={{ marginRight: '8px' }}>
-                            Cancel
+                            {t('cancel')}
                         </Button>
                         <Button type="primary" htmlType="submit">
-                            {editingCategory ? 'Update' : 'Create'}
+                            {editingCategory ? t('update') : t('create')}
                         </Button>
                     </Form.Item>
                 </Form>

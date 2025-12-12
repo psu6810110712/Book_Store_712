@@ -39,6 +39,7 @@ function BookScreen() {
     const [bookData, setBookData] = useState([])
     const [loading, setLoading] = useState(false);
     const [categories, setCategories] = useState([]);
+    // editItem: null = modal closed, object = modal open with this item
     const [editItem, setEditItem] = useState(null);
     const [filterCategories, setFilterCategories] = useState([]);
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
@@ -101,6 +102,28 @@ function BookScreen() {
         setIsAIModalOpen(true);
     }, []);
 
+    // Handler for Edit - open modal with book data (editItem as flag)
+    const handleEditBook = useCallback((book) => {
+        setEditItem(book); // Set item to open modal
+    }, []);
+
+    // Handler for Save Edit - send to server using PATCH
+    // Remove fields that backend doesn't accept: id, category, createdAt, updatedAt
+    const updateBook = useCallback(async (formData) => {
+        try {
+            const bookId = editItem.id;
+
+            // Remove fields that backend doesn't accept
+            const { id, category, createdAt, updatedAt, ...dataToSend } = formData;
+
+            await axios.patch(`${URL_BOOK}/${bookId}`, dataToSend);
+            setEditItem(null); // Close modal
+            await fetchBooks();
+        } catch (err) {
+            console.error(err);
+        }
+    }, [editItem]);
+
 
     useEffect(() => { fetchBooks(); fetchCategories(); }, [])
 
@@ -127,12 +150,12 @@ function BookScreen() {
         return filteredBooks.reduce((total, book) => total + (Number(book.price) * Number(book.stock)), 0);
     }, [filteredBooks]);
 
-    // 4. สร้างส่วน Dropdown เลือกประเภท (สำหรับใส่หน้าช่อง Search)
+    // Search type dropdown with translations
     const selectBefore = (
-        <Select defaultValue="title" onSelect={(value) => setSearchType(value)} style={{ width: 100 }} variant="borderless">
-            <Option value="title">Title</Option>
-            <Option value="author">Author</Option>
-            <Option value="isbn">ISBN</Option>
+        <Select defaultValue="title" onSelect={(value) => setSearchType(value)} style={{ width: 120 }} variant="borderless">
+            <Option value="title">{t('searchByTitle')}</Option>
+            <Option value="author">{t('searchByAuthor')}</Option>
+            <Option value="isbn">{t('searchByISBN')}</Option>
         </Select>
     );
 
@@ -141,14 +164,16 @@ function BookScreen() {
 
             {/* Header Controls */}
             <div style={{ marginBottom: '24px' }}>
-                <Row gutter={[16, 16]} align="middle" justify="space-between">
+                <Row gutter={[16, 16]} align="middle">
 
-                    {/* Filter Category */}
-                    <Col xs={24} md={8}>
+
+                    {/* Filter Category - equal width with Search */}
+                    <Col xs={24} md={9}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                            <span style={{ fontWeight: 'bold' }}>{t('filter')}:</span>
+                            <span style={{ fontWeight: 'bold', whiteSpace: 'nowrap' }}>{t('filter')}:</span>
                             <Select
                                 mode="multiple"
+                                size="large"
                                 tagRender={tagRender}
                                 style={{ width: '100%' }}
                                 options={categories}
@@ -159,8 +184,9 @@ function BookScreen() {
                         </div>
                     </Col>
 
-                    {/* Search Bar */}
-                    <Col xs={24} md={10}>
+
+                    {/* Search Bar - equal width with Filter */}
+                    <Col xs={24} md={9}>
                         <Input.Search
                             addonBefore={selectBefore}
                             placeholder={t('searchPlaceholder')}
@@ -203,9 +229,19 @@ function BookScreen() {
                         onLiked={handleLikeBook}
                         onDeleted={handleDeleteBook}
                         onAskAI={handleAskAI}
+                        onEdit={handleEditBook}
                     />
                 </Card>
             </Spin>
+
+            {/* Edit Book Modal - isOpen is controlled by editItem (null = closed, object = open) */}
+            <EditBook
+                isOpen={!!editItem}
+                item={editItem}
+                categories={categories}
+                onSave={updateBook}
+                onCancel={() => setEditItem(null)}
+            />
 
             {/* Gemini AI Modal */}
             <GeminiBookDetails

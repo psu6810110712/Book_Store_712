@@ -1,5 +1,5 @@
 import { useState, useEffect, lazy, Suspense } from 'react';
-import { BrowserRouter, Routes, Route, Navigate, useNavigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
 import LoginScreen from './LoginScreen';
 import { LanguageProvider, useLanguage } from './contexts/LanguageContext';
 import axios from 'axios';
@@ -30,14 +30,21 @@ axios.defaults.baseURL = "http://localhost:3000";
 // Layout wrapper component that uses routing
 function AppLayout() {
     const navigate = useNavigate();
+    const location = useLocation();
     const [isLoggedIn, setIsLoggedIn] = useState(false);
-    const [currentPath, setCurrentPath] = useState('/books');
+    // currentPath syncs with actual URL
+    const [currentPath, setCurrentPath] = useState(location.pathname);
     const [isDarkMode, setIsDarkMode] = useState(() => {
         return localStorage.getItem('dark-mode') === 'true';
     });
 
     const { language, toggleLanguage, t } = useLanguage();
     const [lowStockCount, setLowStockCount] = useState(0);
+
+    // Sync currentPath with URL changes
+    useEffect(() => {
+        setCurrentPath(location.pathname);
+    }, [location.pathname]);
 
     useEffect(() => {
         const token = localStorage.getItem('token');
@@ -89,8 +96,8 @@ function AppLayout() {
 
     const menuItems = [
         { key: '/books', icon: <ReadOutlined />, label: t('books'), onClick: () => { navigate('/books'); setCurrentPath('/books'); } },
-        { key: '/books/add', icon: <PlusCircleOutlined />, label: 'Add Book', onClick: () => { navigate('/books/add'); setCurrentPath('/books/add'); } },
-        { key: '/stock-alerts', icon: <WarningOutlined />, label: 'Stock Alerts', onClick: () => { navigate('/stock-alerts'); setCurrentPath('/stock-alerts'); } },
+        { key: '/books/add', icon: <PlusCircleOutlined />, label: t('addBook'), onClick: () => { navigate('/books/add'); setCurrentPath('/books/add'); } },
+        { key: '/stock-alerts', icon: <WarningOutlined />, label: t('stockAlerts'), onClick: () => { navigate('/stock-alerts'); setCurrentPath('/stock-alerts'); } },
         { key: '/dashboard', icon: <AppstoreOutlined />, label: t('dashboard'), onClick: () => { navigate('/dashboard'); setCurrentPath('/dashboard'); } },
         { key: '/recommendations', icon: <StarOutlined />, label: t('recommendations'), onClick: () => { navigate('/recommendations'); setCurrentPath('/recommendations'); } },
         { key: '/categories', icon: <FolderOutlined />, label: t('categories'), onClick: () => { navigate('/categories'); setCurrentPath('/categories'); } },

@@ -1,32 +1,30 @@
-import { Modal, Form, Input, InputNumber, Select, Row, Col } from 'antd';
+import { Modal, Form, Input, InputNumber, Select, Row, Col, message } from 'antd';
 import { useEffect } from 'react';
+import { useLanguage } from '../contexts/LanguageContext';
 
 export default function EditBook(props) {
   const [form] = Form.useForm();
+  const { t } = useLanguage();
 
-  // เมื่อมีการเปิด Modal หรือเปลี่ยนข้อมูลหนังสือที่เลือก (props.item)
+  // useEffect: Check props.isOpen and use form.setFieldsValue(props.item)
   useEffect(() => {
     if (props.isOpen && props.item) {
-      // ตั้งค่าฟอร์มด้วยข้อมูลเดิม
-      // หมายเหตุ: ต้องแปลง category เป็น categoryId เพื่อให้ Select แสดงผลถูกต้อง
+      // Set form values with the item data automatically
       form.setFieldsValue({
         ...props.item,
-        categoryId: props.item.category?.id
+        categoryId: props.item.category?.id // Convert category object to categoryId
       });
     }
   }, [props.isOpen, props.item, form]);
 
-  const handleOk = () => {
+  // handleFormSubmit: Validate form and call props.onSave
+  const handleFormSubmit = () => {
     form
       .validateFields()
-      .then((values) => {
-        // รวม id จาก props.item เข้าไปด้วย เพื่อให้ BookScreen รู้ว่าจะ update record ไหน
-        const updatedData = {
-          ...values,
-          id: props.item.id
-        };
-        // ส่งข้อมูลที่แก้แล้วกลับไปให้แม่ (BookScreen)
-        props.onSave(updatedData);
+      .then((formData) => {
+        // Call onSave to send data back to BookScreen for server update
+        props.onSave(formData);
+        message.success(`✅ "${formData.title}" ${t('success')}!`);
       })
       .catch((info) => {
         console.log('Validate Failed:', info);
@@ -35,52 +33,73 @@ export default function EditBook(props) {
 
   return (
     <Modal
-      title="Edit Book"
+      title={`📝 ${t('editBook')}`}
       open={props.isOpen}
-      onOk={handleOk}
+      onOk={handleFormSubmit}
       onCancel={props.onCancel}
-      okText="Save"
-      cancelText="Cancel"
+      okText={t('save')}
+      cancelText={t('cancel')}
       width={600}
+      destroyOnClose
     >
       <Form
         form={form}
         layout="vertical"
-        name="form_in_modal"
+        name="edit_book_form"
       >
-        {/* จัด Title กับ Author ให้อยู่บรรทัดเดียวกัน */}
+        {/* Title and Author - same row */}
         <Row gutter={16}>
           <Col span={12}>
-            <Form.Item name="title" label="Title" rules={[{ required: true }]}>
+            <Form.Item
+              name="title"
+              label={t('title')}
+              rules={[{ required: true, message: `${t('title')} is required` }]}
+            >
               <Input placeholder="Enter title" />
             </Form.Item>
           </Col>
           <Col span={12}>
-            <Form.Item name="author" label="Author" rules={[{ required: true }]}>
+            <Form.Item
+              name="author"
+              label={t('author')}
+              rules={[{ required: true, message: `${t('author')} is required` }]}
+            >
               <Input placeholder="Enter author" />
             </Form.Item>
           </Col>
         </Row>
 
-        {/* เพิ่ม Description */}
-        <Form.Item name="description" label="Description">
+        {/* Description */}
+        <Form.Item name="description" label={t('description')}>
           <Input.TextArea rows={2} placeholder="Brief description..." />
         </Form.Item>
 
-        {/* Price, Stock, และ Category ในบรรทัดเดียวกัน */}
+        {/* Price, Stock, Category - same row */}
         <Row gutter={16}>
           <Col span={8}>
-            <Form.Item name="price" label="Price" rules={[{ required: true }]}>
+            <Form.Item
+              name="price"
+              label={t('price')}
+              rules={[{ required: true, message: `${t('price')} is required` }]}
+            >
+              <InputNumber style={{ width: '100%' }} min={0} prefix="$" />
+            </Form.Item>
+          </Col>
+          <Col span={8}>
+            <Form.Item
+              name="stock"
+              label={t('stock')}
+              rules={[{ required: true, message: `${t('stock')} is required` }]}
+            >
               <InputNumber style={{ width: '100%' }} min={0} />
             </Form.Item>
           </Col>
           <Col span={8}>
-            <Form.Item name="stock" label="Stock" rules={[{ required: true }]}>
-              <InputNumber style={{ width: '100%' }} min={0} />
-            </Form.Item>
-          </Col>
-          <Col span={8}>
-            <Form.Item name="categoryId" label="Category" rules={[{ required: true }]}>
+            <Form.Item
+              name="categoryId"
+              label={t('category')}
+              rules={[{ required: true, message: `${t('category')} is required` }]}
+            >
               <Select
                 allowClear
                 options={props.categories}
@@ -90,13 +109,13 @@ export default function EditBook(props) {
           </Col>
         </Row>
 
-        {/* เพิ่ม ISBN */}
-        <Form.Item name="isbn" label="ISBN">
+        {/* ISBN */}
+        <Form.Item name="isbn" label={t('isbn')}>
           <Input placeholder="Enter ISBN" />
         </Form.Item>
 
-        {/* เพิ่มช่องใส่ Link รูปภาพ */}
-        <Form.Item name="coverUrl" label="Cover Image URL">
+        {/* Cover Image URL */}
+        <Form.Item name="coverUrl" label={`${t('cover')} Image URL`}>
           <Input placeholder="e.g. https://example.com/image.jpg" />
         </Form.Item>
 
