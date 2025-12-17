@@ -61,7 +61,7 @@ function App() {
         algorithm: isDarkMode ? theme.darkAlgorithm : theme.defaultAlgorithm,
         token: {
           // ปรับสี Primary ได้ถ้าต้องการ
-          colorPrimary: '#1890ff',
+          colorPrimary: '#33bcb7',
         }
       }}
     >
@@ -81,7 +81,7 @@ function App() {
                 color: isDarkMode ? 'white' : '#333', // สีตัวหนังสือโลโก้
                 marginRight: '24px', fontWeight: '600', fontSize: '18px', whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', gap: '8px'
               }}>
-                <ReadOutlined style={{ color: '#1890ff' }} /> My Shop
+                <ReadOutlined style={{ color: '#33bcb7' }} /> My Shop
               </div>
 
               <Menu

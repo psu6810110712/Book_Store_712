@@ -148,7 +148,7 @@ function AppLayout() {
             theme={{
                 algorithm: isDarkMode ? theme.darkAlgorithm : theme.defaultAlgorithm,
                 token: {
-                    colorPrimary: '#1890ff',
+                    colorPrimary: '#33bcb7',
                 }
             }}
         >
@@ -166,7 +166,7 @@ function AppLayout() {
                             color: isDarkMode ? 'white' : '#333',
                             marginRight: '24px', fontWeight: '600', fontSize: '18px', whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', gap: '8px'
                         }}>
-                            <ReadOutlined style={{ color: '#1890ff' }} /> My Book Shop
+                            <ReadOutlined style={{ color: '#33bcb7' }} /> My Book Shop
                         </div>
 
                         <Menu

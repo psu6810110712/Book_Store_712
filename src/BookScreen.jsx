@@ -213,12 +213,12 @@ function BookScreen() {
                     marginBottom: '24px',
                     textAlign: 'center',
                     background: 'transparent',
-                    border: '1px dashed #1890ff'
+                    border: '1px dashed #33bcb7'
                 }}
                 bodyStyle={{ padding: '16px' }}
             >
                 <h3 className="no-select" style={{ margin: 0, opacity: 0.8 }}>
-                    💰 {t('totalValue')}: <span style={{ color: '#1890ff', fontSize: '1.3em', fontWeight: 'bold' }}>${totalAmount.toLocaleString()}</span>
+                    💰 {t('totalValue')}: <span style={{ color: '#33bcb7', fontSize: '1.3em', fontWeight: 'bold' }}>${totalAmount.toLocaleString()}</span>
                 </h3>
             </Card>
 

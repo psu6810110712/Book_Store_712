@@ -8,9 +8,17 @@ This design system follows minimalist principles with a focus on clarity, consis
 ## Color Palette
 
 ### Primary Color
-- **Primary Blue**: `#2563eb` - Used for main actions, logo, and interactive elements
-- **Primary Hover**: `#1d4ed8` - Hover state for primary actions
-- **Primary Light**: `#dbeafe` - Backgrounds for primary-related content
+- **Cyan Palette**:
+  - `cyan-0`: `#112123`
+  - `cyan-1`: `#113536`
+  - `cyan-2`: `#144848`
+  - `cyan-3`: `#146262`
+  - `cyan-4`: `#138585`
+  - `cyan-5`: `#13a8a8`
+  - **Primary (cyan-6)**: `#33bcb7`
+  - `cyan-7`: `#58d1c9`
+  - `cyan-8`: `#84e2d8`
+  - `cyan-9`: `#b2f1e8`
 
 ### Neutral Colors (Gray Scale)
 ```

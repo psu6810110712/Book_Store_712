@@ -234,7 +234,7 @@ export default function DashboardScreen() {
               prefix={<DollarOutlined />}
               precision={2}
               suffix="$"
-              valueStyle={{ color: '#1890ff' }}
+              valueStyle={{ color: '#33bcb7' }}
             />
           </Card>
         </Col>

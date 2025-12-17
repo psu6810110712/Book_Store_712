@@ -96,7 +96,7 @@ export default function BookRecommendationPage() {
             <Card
                 title={
                     <span>
-                        <BulbOutlined style={{ marginRight: '8px', color: '#1890ff' }} />
+                        <BulbOutlined style={{ marginRight: '8px', color: '#33bcb7' }} />
                         {t('aiTitle')}
                     </span>
                 }
@@ -211,7 +211,7 @@ export default function BookRecommendationPage() {
                                     extra={
                                         <div style={{
                                             fontSize: '48px',
-                                            color: '#1890ff',
+                                            color: '#33bcb7',
                                             fontWeight: 'bold',
                                             opacity: 0.2
                                         }}>
@@ -220,7 +220,7 @@ export default function BookRecommendationPage() {
                                     }
                                 >
                                     <List.Item.Meta
-                                        avatar={<BookOutlined style={{ fontSize: '32px', color: '#1890ff' }} />}
+                                        avatar={<BookOutlined style={{ fontSize: '32px', color: '#33bcb7' }} />}
                                         title={
                                             <Space>
                                                 <span style={{ fontSize: '18px', fontWeight: 600 }}>
@@ -246,7 +246,7 @@ export default function BookRecommendationPage() {
                                             padding: '12px',
                                             background: '#f6f8fa',
                                             borderRadius: '8px',
-                                            borderLeft: '4px solid #1890ff'
+                                            borderLeft: '4px solid #33bcb7'
                                         }}>
                                             <HeartOutlined style={{ marginRight: '8px', color: '#ff4d4f' }} />
                                             <strong>{t('whyLoveIt')}:</strong> {book.reason}

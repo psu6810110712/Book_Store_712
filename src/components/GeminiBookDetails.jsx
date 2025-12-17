@@ -90,7 +90,7 @@ Respond in JSON format (in ${promptLang}, keep it concise):
         <Modal
             title={
                 <Space>
-                    <RobotOutlined style={{ color: '#1890ff' }} />
+                    <RobotOutlined style={{ color: '#33bcb7' }} />
                     <span>{t('aiInsights')}</span>
                 </Space>
             }
